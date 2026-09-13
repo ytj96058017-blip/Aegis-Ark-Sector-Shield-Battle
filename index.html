@@ -1068,14 +1068,19 @@
             const modal = document.getElementById('tactical-select-modal');
             if (modal) {
                 const bonusEl = document.getElementById('tactical-fever-bonus');
-                if (isHyperFeverActive) {
-                    bonusEl.innerText = "⚡ [HYPER FEVER!] 무결점 연산 달성! 황금 카운터 빔포와 슈퍼 전술 효과 발동!";
-                    bonusEl.className = "text-xs font-bold text-yellow-300 animate-pulse";
-                } else {
-                    bonusEl.innerText = "선택한 전술 카드의 고유 효과가 레이저와 함께 즉시 발동됩니다.";
-                    bonusEl.className = "text-xs font-bold text-cyan-300";
+                if (bonusEl) {
+                    if (isHyperFeverActive) {
+                        bonusEl.innerText = "⚡ [HYPER FEVER!] 무결점 연산 달성! 황금 카운터 빔포와 슈퍼 전술 효과 발동!";
+                        bonusEl.className = "text-xs font-bold text-yellow-300 animate-pulse";
+                    } else {
+                        bonusEl.innerText = "선택한 전술 카드의 고유 효과가 레이저와 함께 즉시 발동됩니다.";
+                        bonusEl.className = "text-xs font-bold text-cyan-300";
+                    }
                 }
                 modal.classList.remove('hidden');
+            } else {
+                // 안전 Fallback: 모달이 없더라도 멈추지 않고 즉시 포격 실행
+                window.chooseTacticalModule('reflect');
             }
         };
 
@@ -1088,7 +1093,7 @@
             openTacticalModal();
         };
 
-        window.chooseTacticalModule = async function(tacticalType) {
+        window.chooseTacticalModule = async function(tacticalType = 'reflect') {
             closeTacticalModal();
             if (isLockedOut) return;
             if (!lastKnownRoomData) return;
