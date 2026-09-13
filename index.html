@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에이지스 아크: 부채꼴 방어막 배틀 - 중1 수학 실시간 기하 협동전</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Jua', 'Inter', sans-serif; }
+        .font-arc { font-family: 'Black Han Sans', sans-serif; }
+        .cyber-space-bg {
+            background: radial-gradient(circle at 50% 20%, #081b29 0%, #030a10 60%, #010408 100%);
+        }
+        .arc-shield-glow {
+            animation: shieldPulse 2.2s infinite ease-in-out;
+        }
+        @keyframes shieldPulse {
+            0%, 100% { box-shadow: 0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(56, 189, 248, 0.2); }
+            50% { box-shadow: 0 0 38px rgba(56, 189, 248, 0.85), inset 0 0 22px rgba(56, 189, 248, 0.45); }
+        }
+        .overheat-siren {
+            animation: overheatAlert 0.75s infinite alternate;
+        }
+        @keyframes overheatAlert {
+            from { border-color: #ef4444; background-color: rgba(239, 68, 68, 0.25); }
+            to { border-color: #f59e0b; background-color: rgba(245, 158, 11, 0.35); }
+        }
+        @keyframes coreSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .core-rotate {
+            animation: coreSpin 20s linear infinite;
+        }
+    </style>
+</head>
+<body class="cyber-space-bg text-white min-h-screen flex flex-col justify-between p-3 md:p-6 select-none">
+
+    <!-- Header Banner -->
+    <header class="text-center mb-3">
+        <div class="flex items-center justify-center gap-3">
+            <span class="text-3xl md:text-5xl">🛡️</span>
+            <h1 class="text-3xl md:text-5xl font-arc tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-300 to-indigo-400 drop-shadow-lg">
+                에이지스 아크: 부채꼴 방어막 배틀
+            </h1>
+            <span class="text-3xl md:text-5xl">⚡</span>
+        </div>
+        <p class="text-xs md:text-sm text-cyan-200 mt-1">
+            중학교 1학년 2학기 기하 [원과 부채꼴·중심각·호의 길이·넓이] 4인 협동 실시간 방어막 & 카운터 포격전
+        </p>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="max-w-5xl w-full mx-auto flex-1 flex flex-col justify-center">
+
+        <!-- 1. Lobby Screen -->
+        <div id="lobby-screen" class="bg-slate-900/90 border-2 border-cyan-500/60 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-xl">
+            <div class="text-center mb-8">
+                <div class="inline-block px-4 py-1.5 rounded-full bg-cyan-950 border border-cyan-400/50 text-cyan-300 text-xs font-bold mb-2">
+                    🛰️ 에이지스 사령부 코어
+                </div>
+                <h2 class="text-2xl md:text-3xl font-arc text-cyan-300 mb-2">방어 기지 배틀룸 참전 등록</h2>
+                <p class="text-xs md:text-sm text-slate-300">
+                    같은 배틀룸 코드를 입력한 친구들과 청군(블루 아크) / 홍군(레드 이지스) 기지를 결성하여 5개의 메테오 웨이브를 먼저 방어하고 적 코어를 격파하세요!
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                <div class="bg-slate-950/80 p-5 rounded-2xl border border-slate-700">
+                    <label class="block text-sm font-semibold mb-2 text-cyan-300 flex items-center gap-2">
+                        <span>👤</span> 기하 방어관 닉네임
+                    </label>
+                    <input type="text" id="player-name" placeholder="예: 부채꼴수호자 예준" maxlength="10"
+                           class="w-full px-4 py-3 rounded-xl bg-slate-900 border-2 border-slate-700 text-white font-bold text-lg focus:outline-none focus:border-cyan-400">
+                </div>
+                <div class="bg-slate-950/80 p-5 rounded-2xl border border-slate-700">
+                    <label class="block text-sm font-semibold mb-2 text-cyan-300 flex items-center gap-2">
+                        <span>🔑</span> 배틀룸 코드 (방 비밀번호)
+                    </label>
+                    <input type="text" id="room-code" placeholder="예: aegis101" maxlength="12"
+                           class="w-full px-4 py-3 rounded-xl bg-slate-900 border-2 border-slate-700 text-white font-bold text-lg focus:outline-none focus:border-cyan-400">
+                </div>
+            </div>
+
+            <!-- Team Select Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                <button onclick="joinTeam('blue')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-cyan-700 to-blue-600 hover:from-cyan-600 hover:to-blue-500 transition-all duration-200 shadow-xl border-2 border-cyan-300 flex items-center justify-center gap-3 transform hover:-translate-y-1">
+                    <span class="text-3xl">🔵</span>
+                    <span>청군 코어 (블루 아크) 기동</span>
+                </button>
+                <button onclick="joinTeam('red')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 transition-all duration-200 shadow-xl border-2 border-rose-400 flex items-center justify-center gap-3 transform hover:-translate-y-1">
+                    <span class="text-3xl">🔴</span>
+                    <span>홍군 코어 (레드 이지스) 기동</span>
+                </button>
+            </div>
+
+            <div id="lobby-status" class="text-center text-sm text-cyan-300 font-bold min-h-[24px]">
+                기지를 선택하면 부채꼴 에너지 코어를 동기화하고 방어 구역으로 진입합니다!
+            </div>
+        </div>
+
+        <!-- 2. Battle Screen -->
+        <div id="battle-screen" class="hidden flex flex-col gap-4">
+            
+            <!-- Fleet Status HUD: 5 Waves/Cores Per Team -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/90 p-4 rounded-3xl border border-slate-700 shadow-xl">
+                <!-- Blue Core -->
+                <div class="flex flex-col gap-2 p-3.5 rounded-2xl bg-cyan-950/50 border-2 border-cyan-500/50">
+                    <div class="flex justify-between items-center text-sm font-bold">
+                        <span class="text-cyan-300 font-arc text-base md:text-lg flex items-center gap-2">
+                            <span>🔵</span> 블루 아크 코어 (방어 완료: <span id="blue-defense-count">0</span>/5회)
+                        </span>
+                        <div id="blue-defense-icons" class="flex items-center gap-1.5 text-xl">
+                            <span>🛡️</span><span>🛡️</span><span>🛡️</span><span>🛡️</span><span>🛡️</span>
+                        </div>
+                    </div>
+                    <div id="blue-members" class="text-xs text-cyan-200 truncate">대원: 대기 중...</div>
+                </div>
+
+                <!-- Red Core -->
+                <div class="flex flex-col gap-2 p-3.5 rounded-2xl bg-rose-950/50 border-2 border-rose-500/50">
+                    <div class="flex justify-between items-center text-sm font-bold">
+                        <span class="text-rose-300 font-arc text-base md:text-lg flex items-center gap-2">
+                            <span>🔴</span> 레드 이지스 코어 (방어 완료: <span id="red-defense-count">0</span>/5회)
+                        </span>
+                        <div id="red-defense-icons" class="flex items-center gap-1.5 text-xl">
+                            <span>🛡️</span><span>🛡️</span><span>🛡️</span><span>🛡️</span><span>🛡️</span>
+                        </div>
+                    </div>
+                    <div id="red-members" class="text-xs text-rose-200 truncate">대원: 대기 중...</div>
+                </div>
+            </div>
+
+            <!-- 2D Circular Sector Aegis Radar Canvas -->
+            <div class="relative w-full h-80 md:h-96 bg-slate-950 rounded-3xl border-2 border-cyan-500/60 overflow-hidden shadow-2xl">
+                <canvas id="arc-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+                
+                <!-- Angle HUD Label -->
+                <div class="absolute top-2 left-3 px-3.5 py-1.5 bg-slate-950/85 border border-cyan-400/50 rounded-full text-xs font-mono text-cyan-300 z-10 flex items-center gap-2 shadow">
+                    <span>📡 방어각 락온:</span>
+                    <span id="arc-hud-angle" class="font-bold text-yellow-300">미전개</span>
+                </div>
+
+                <div class="absolute top-2 right-3 px-3.5 py-1.5 bg-slate-950/85 border border-cyan-400/50 rounded-full text-[11px] font-arc text-cyan-300 z-10 flex items-center gap-1.5 shadow">
+                    <span>👆 캔버스 터치:</span>
+                    <span class="text-yellow-300">팀 부채꼴 각도 핑(Ping)</span>
+                </div>
+            </div>
+
+            <!-- Cooperative Action Console -->
+            <div id="action-box" class="relative bg-slate-900/95 border-2 border-cyan-500/70 rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col items-center text-center arc-shield-glow">
+                
+                <!-- 찍기 방지 5초 실드 과열 락다운 오버레이 -->
+                <div id="lockout-penalty-box" class="hidden absolute inset-0 bg-slate-950/95 rounded-3xl z-40 flex flex-col items-center justify-center p-6 text-center border-4 border-rose-500 overheat-siren backdrop-blur-md">
+                    <span class="text-5xl animate-bounce mb-2">⚠️</span>
+                    <h4 class="text-2xl font-arc text-rose-400 mb-1">방어막 에너지 과열! 쿨다운 긴급 냉각 중</h4>
+                    <p class="text-xs md:text-sm text-slate-200 mb-3">
+                        부채꼴 공식 판정 실패! 무작위 찍기를 방지하기 위해 5초간 실드 콘솔이 정지됩니다.<br>
+                        원주율 π 앞의 계수와 중심각 공식을 다시 정확히 계산하세요!
+                    </p>
+                    <div class="px-5 py-2.5 rounded-2xl bg-rose-950 border-2 border-rose-400 font-arc text-2xl text-yellow-300 flex items-center gap-2">
+                        <span>⏳ 재가동까지:</span>
+                        <span id="lockout-timer-num" class="text-3xl font-mono text-rose-400">5.0</span>초
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
+                    <span id="my-team-badge" class="text-xs px-3.5 py-1.5 rounded-full font-bold">소속 기지</span>
+                    <span id="my-role-badge" class="text-xs px-3.5 py-1.5 bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 rounded-full font-bold">내 포지션</span>
+                    <span id="threat-wave-badge" class="text-xs px-3.5 py-1.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full font-bold">
+                        ☄️ 요격 위협: <span id="current-threat-name">메테오 폭격 #1</span>
+                    </span>
+                </div>
+
+                <!-- Mission Formula & Clue Display -->
+                <div class="w-full max-w-2xl bg-slate-950 border-2 border-cyan-400/80 rounded-2xl p-4 md:p-5 shadow-inner mb-4">
+                    <div class="text-xs font-semibold text-cyan-300 mb-1 tracking-wider uppercase flex items-center justify-center gap-1.5">
+                        <span>🧭</span> 부채꼴 사령부 레이더 신호 분석
+                    </div>
+                    <div id="mission-clue-display" class="text-lg md:text-2xl font-arc text-yellow-300 tracking-wide leading-relaxed">
+                        부채꼴 레이더 파동 동기화 중...
+                    </div>
+                </div>
+
+                <!-- Input Controls -->
+                <div class="w-full max-w-xl flex flex-col items-center gap-3">
+                    <div id="step-instruction" class="text-sm md:text-base font-bold text-cyan-200 min-h-[44px] flex items-center justify-center px-2">
+                        단계 안내 로딩 중...
+                    </div>
+
+                    <!-- Input Mode: Number Input (Step 0, 1, 2) -->
+                    <div id="number-input-control" class="flex flex-col sm:flex-row items-center justify-center gap-2 w-full max-w-md">
+                        <div class="relative w-full sm:w-56">
+                            <input type="number" id="step-number-input" placeholder="숫자 입력" 
+                                   class="w-full px-4 py-3 rounded-xl bg-slate-950 border-2 border-cyan-400 text-white font-bold text-xl text-center focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                                   onkeydown="if(event.key==='Enter') submitStep()">
+                            <span id="pi-unit-label" class="hidden absolute right-4 top-3 text-cyan-300 font-arc text-xl pointer-events-none">π</span>
+                        </div>
+                        <button id="submit-step-btn" onclick="submitStep()" 
+                                class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-cyan-500 to-sky-400 hover:from-cyan-400 hover:to-sky-300 text-slate-950 font-arc text-lg rounded-xl transition shadow-lg flex items-center justify-center gap-1.5 active:scale-95">
+                            <span>📡</span><span>에너지 고정</span>
+                        </button>
+                    </div>
+
+                    <!-- Input Mode 4: Deploy & Counter Laser Fire Button (Step 3) -->
+                    <div id="shield-deploy-control" class="hidden flex flex-col items-center gap-2 w-full max-w-md">
+                        <button onclick="deployShieldStep()" class="w-full py-4 bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 hover:from-sky-400 hover:to-indigo-400 text-white font-arc text-2xl rounded-2xl shadow-xl border-2 border-cyan-300 active:scale-95 transition animate-pulse flex items-center justify-center gap-2">
+                            <span>🛡️</span><span>에이지스 아크 전개 & 카운터 포격!</span>
+                        </button>
+                        <span class="text-xs text-cyan-200 font-semibold">부채꼴 방어막 완벽 형성! 폭격을 튕겨내고 반격 빔을 발사하세요!</span>
+                    </div>
+
+                    <!-- Waiting Notice for Other Members -->
+                    <div id="waiting-notice" class="hidden p-3 rounded-xl bg-slate-950/80 border border-slate-700 text-xs md:text-sm text-cyan-200">
+                        ⏳ 현재 <span id="current-actor-name" class="font-bold text-yellow-300"></span> 대원이 방어막을 설계 중입니다. 캔버스를 터치하여 각도 핑을 찍어주세요!
+                    </div>
+                </div>
+
+                <!-- 4-Stage Pipeline Tracker Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full max-w-2xl mt-5 pt-4 border-t border-slate-800 text-xs font-semibold">
+                    <div id="stage-card-0" class="p-2.5 rounded-xl border transition-all text-slate-400 bg-slate-950/60 border-slate-800">
+                        ① 중심각 분석관
+                    </div>
+                    <div id="stage-card-1" class="p-2.5 rounded-xl border transition-all text-slate-400 bg-slate-950/60 border-slate-800">
+                        ② 호(Arc) 유도사
+                    </div>
+                    <div id="stage-card-2" class="p-2.5 rounded-xl border transition-all text-slate-400 bg-slate-950/60 border-slate-800">
+                        ③ 넓이 압축사
+                    </div>
+                    <div id="stage-card-3" class="p-2.5 rounded-xl border transition-all text-slate-400 bg-slate-950/60 border-slate-800">
+                        ④ 쉴드 격발관 🚀
+                    </div>
+                </div>
+
+                <!-- Feedback & Radio -->
+                <div id="battle-feedback" class="text-sm font-bold min-h-[24px] mt-3"></div>
+
+                <div class="flex flex-wrap items-center justify-center gap-2 mt-2">
+                    <button onclick="sendQuickCheer('호의 길이는 2πr × (x/360)! 📐')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
+                        📐 l = 2πr × (x/360)
+                    </button>
+                    <button onclick="sendQuickCheer('넓이는 πr² × (x/360) = 1/2 lr! 🛡️')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
+                        🛡️ S = 1/2 lr 기억!
+                    </button>
+                    <button onclick="sendQuickCheer('π 앞의 계수 숫자만 입력해! ⚡')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
+                        ⚡ π 계수만 입력!
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Custom Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 border-2 border-cyan-400 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <h4 id="modal-title" class="text-2xl font-arc text-cyan-300 mb-2">사령부 통신</h4>
+            <p id="modal-body" class="text-sm text-slate-200 mb-6">내용</p>
+            <button onclick="closeCustomModal()" class="bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 font-arc px-6 py-2.5 rounded-xl transition shadow-lg hover:scale-105">
+                확인
+            </button>
+        </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="victory-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl hidden flex items-center justify-center z-50 p-4">
+        <div class="relative bg-gradient-to-b from-slate-900 via-sky-950 to-slate-950 border-4 border-cyan-400 rounded-3xl p-6 md:p-8 max-w-lg w-full text-center shadow-[0_0_60px_rgba(56,189,248,0.6)] overflow-hidden">
+            <div class="text-6xl md:text-7xl mb-2">🏆</div>
+            <div class="inline-block px-4 py-1 rounded-full bg-cyan-400 text-slate-950 font-arc text-xs tracking-wider mb-2">
+                🛡️ AEGIS ARC DEFENSE GRAND VICTORY
+            </div>
+            <h3 id="victory-team-title" class="text-3xl md:text-4xl font-arc text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-cyan-400 mb-3">
+                청군 코어 완승!
+            </h3>
+            <p id="victory-desc" class="text-xs md:text-sm text-cyan-200 mb-5 leading-relaxed">
+                5개의 메테오 웨이브를 완벽한 부채꼴 중심각과 호·넓이 공식으로 모두 방어하고 적 기지를 제압했습니다!
+            </p>
+
+            <div class="bg-slate-950/80 border border-slate-700 rounded-2xl p-4 mb-6 text-left">
+                <div class="text-xs text-yellow-300 font-bold mb-2 flex items-center gap-1.5">
+                    <span>👑</span> 영웅 에이지스 방어 크루
+                </div>
+                <div id="victory-members-list" class="text-sm font-bold text-white mb-3">
+                    대원 목록
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-center text-xs font-arc border-t border-slate-800 pt-3">
+                    <div class="bg-slate-900/80 p-2 rounded-xl">
+                        <span class="text-slate-400 block text-[10px]">방어 성공</span>
+                        <span class="text-cyan-300 text-sm">5회 웨이브 방어 완료</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-2 rounded-xl">
+                        <span class="text-slate-400 block text-[10px]">작전 수행 타임</span>
+                        <span id="victory-total-time" class="text-yellow-300 text-sm">00.0초</span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full py-4 bg-gradient-to-r from-cyan-400 via-sky-400 to-cyan-500 hover:from-cyan-300 hover:to-sky-300 text-slate-950 font-arc text-lg rounded-2xl shadow-xl transform active:scale-95 transition">
+                ⚡ 새로운 방어 구역 재도전
+            </button>
+        </div>
+    </div>
+
+    <!-- Web Audio API Sound Synthesizer -->
+    <script>
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) this.ctx = new AudioContext();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playTone(freq, type, duration, gainVal = 0.15) {
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {}
+            }
+            shieldDeploy() {
+                this.init();
+                this.playTone(320, 'sine', 0.2, 0.25);
+                setTimeout(() => this.playTone(640, 'triangle', 0.35, 0.3), 80);
+                setTimeout(() => this.playTone(960, 'sine', 0.45, 0.2), 160);
+            }
+            counterLaser() {
+                this.init();
+                this.playTone(1200, 'sawtooth', 0.15, 0.25);
+                setTimeout(() => this.playTone(880, 'sawtooth', 0.25, 0.25), 60);
+                setTimeout(() => this.playTone(440, 'triangle', 0.4, 0.3), 140);
+            }
+            explosion() {
+                this.init();
+                this.playTone(90, 'sawtooth', 0.6, 0.4);
+                setTimeout(() => this.playTone(60, 'triangle', 0.7, 0.35), 70);
+            }
+            success() {
+                this.init();
+                this.playTone(523.25, 'triangle', 0.12, 0.2);
+                setTimeout(() => this.playTone(659.25, 'triangle', 0.18, 0.25), 90);
+            }
+            error() {
+                this.init();
+                this.playTone(210, 'sawtooth', 0.2, 0.25);
+                setTimeout(() => this.playTone(150, 'sawtooth', 0.25, 0.3), 90);
+            }
+            tacticalPing() {
+                this.init();
+                this.playTone(700, 'sine', 0.15, 0.2);
+                setTimeout(() => this.playTone(1050, 'triangle', 0.25, 0.25), 50);
+            }
+            victoryFanfare() {
+                this.init();
+                const notes = [
+                    { f: 523.25, d: 0.18 },
+                    { f: 659.25, d: 0.18 },
+                    { f: 783.99, d: 0.22 },
+                    { f: 1046.50, d: 0.5 },
+                    { f: 783.99, d: 0.18 },
+                    { f: 1046.50, d: 0.8 }
+                ];
+                let delay = 0;
+                notes.forEach(n => {
+                    setTimeout(() => this.playTone(n.f, 'triangle', n.d, 0.3), delay);
+                    delay += n.d * 1000 + 40;
+                });
+            }
+        }
+        const sfx = new SoundFX();
+    </script>
+
+    <!-- Main Game Logic and Firebase Synchronizer -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChxrOzoTxFMy_BvkvNZLXAp1oRvN7Fb1g",
+            authDomain: "focus-tower-defense.firebaseapp.com",
+            projectId: "focus-tower-defense",
+            storageBucket: "focus-tower-defense.firebasestorage.app",
+            messagingSenderId: "519329169002",
+            appId: "1:519329169002:web:401534fe04b6ad39131413",
+            measurementId: "G-G2JRKQ2KXY"
+        };
+
+        let db = null;
+        let useFallback = false;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            const auth = getAuth(app);
+            signInAnonymously(auth).catch(() => { useFallback = true; });
+        } catch (e) {
+            useFallback = true;
+        }
+
+        // Dedicated Firebase collection path for Aegis Arc
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'aegis-arc-default';
+        let currentUserName = '';
+        let currentRoomCode = '';
+        let myTeam = '';
+        let unsubscribeRoom = null;
+        let lastKnownRoomData = null;
+        let bc = null;
+
+        let missionStartTime = Date.now();
+        let prevWasMyTurn = false;
+        let battleEnded = false;
+        let isLockedOut = false;
+        let lockoutTimerInterval = null;
+        const recentProblemsSet = new Set();
+
+        /*
+          Procedural Sector Math Generator (Middle School Grade 1, 2nd Semester Geometry)
+          Formulas:
+          - Central Angle: x°
+          - Arc Length: l = 2πr * (x/360) = π * (rx / 180)
+            Students enter the coefficient of π!
+          - Area: S = πr² * (x/360) = 1/2 * l * r
+            Students enter the coefficient of π!
+        */
+        function generateSectorMission(waveIndex = 1) {
+            let mission = null;
+            let attempts = 0;
+
+            const candidates = [
+                // (r, x): rx/180 is integer, r^2 * x / 360 is integer
+                { r: 6, x: 60 },   // l = 2π, S = 6π
+                { r: 6, x: 120 },  // l = 4π, S = 12π
+                { r: 6, x: 240 },  // l = 8π, S = 24π
+                { r: 8, x: 45 },   // l = 2π, S = 8π
+                { r: 8, x: 90 },   // l = 4π, S = 16π
+                { r: 8, x: 135 },  // l = 6π, S = 24π
+                { r: 9, x: 120 },  // l = 6π, S = 27π
+                { r: 10, x: 72 },  // l = 4π, S = 20π
+                { r: 10, x: 144 }, // l = 8π, S = 40π
+                { r: 12, x: 30 },  // l = 2π, S = 12π
+                { r: 12, x: 60 },  // l = 4π, S = 24π
+                { r: 12, x: 90 },  // l = 6π, S = 36π
+                { r: 12, x: 150 }, // l = 10π, S = 60π
+                { r: 15, x: 120 }, // l = 10π, S = 75π
+                { r: 4, x: 90 },   // l = 2π, S = 4π
+                { r: 4, x: 180 },  // l = 4π, S = 8π
+                { r: 5, x: 144 },  // l = 4π, S = 10π
+                { r: 18, x: 40 },  // l = 4π, S = 36π
+                { r: 18, x: 80 },  // l = 8π, S = 72π
+                { r: 16, x: 45 },  // l = 4π, S = 32π
+                { r: 16, x: 90 }   // l = 8π, S = 64π
+            ];
+
+            while (attempts < 100) {
+                attempts++;
+                const item = candidates[Math.floor(Math.random() * candidates.length)];
+                const r = item.r;
+                const x = item.x;
+                const arcCoef = (r * x) / 180; // coefficient of π for arc
+                const areaCoef = (r * r * x) / 360; // coefficient of π for area
+
+                // Start angle for visual variety on radar (0° to 330°)
+                const startAngle = (Math.floor(Math.random() * 12) * 30) % 360;
+
+                const problemKey = `${r}_${x}_${startAngle}`;
+                if (!recentProblemsSet.has(problemKey) || attempts > 80) {
+                    recentProblemsSet.add(problemKey);
+                    if (recentProblemsSet.size > 40) {
+                        const first = recentProblemsSet.values().next().value;
+                        recentProblemsSet.delete(first);
+                    }
+
+                    // Clue styles
+                    let step0Clue = "";
+                    const clueType = Math.floor(Math.random() * 3);
+                    if (clueType === 0) {
+                        step0Clue = `반지름 r = ${r}, 전체 원의 ${x}/360 에 해당하는 중심각 x° 구역에 메테오 폭격 접근!`;
+                    } else if (clueType === 1) {
+                        const fracDenom = 360 / x;
+                        if (Number.isInteger(fracDenom)) {
+                            step0Clue = `반지름 r = ${r}, 전체 원둘레의 1/${fracDenom}을 차지하는 중심각 x° 방어막 형성 지령!`;
+                        } else {
+                            step0Clue = `반지름 r = ${r}, 중심각 크기가 ${x}°인 궤도에 고에너지 위협 탐지!`;
+                        }
+                    } else {
+                        step0Clue = `호의 길이가 ${arcCoef}π이고 반지름이 ${r}인 부채꼴 궤도의 중심각 x°를 도출하라!`;
+                    }
+
+                    mission = {
+                        r: r,
+                        x: x,
+                        arcCoef: arcCoef,
+                        areaCoef: areaCoef,
+                        startAngle: startAngle,
+                        endAngle: (startAngle + x) % 360,
+                        step0Clue: step0Clue,
+                        step1Clue: `호의 길이 l = 2πr × (x/360) 계산: π 앞의 계수 숫자 입력! (r=${r}, x=${x}°)`,
+                        step2Clue: `넓이 S = 1/2 lr = πr² × (x/360) 계산: π 앞의 계수 숫자 입력! (l=${arcCoef}π, r=${r})`
+                    };
+                    break;
+                }
+            }
+
+            if (!mission) {
+                mission = {
+                    r: 6,
+                    x: 60,
+                    arcCoef: 2,
+                    areaCoef: 6,
+                    startAngle: 45,
+                    endAngle: 105,
+                    step0Clue: "반지름 r = 6, 중심각 x = 60° 구역에 메테오 폭격 접근!",
+                    step1Clue: "호의 길이 l = 2πr × (x/360) 계산: π 앞의 계수 숫자 입력! (r=6, x=60°)",
+                    step2Clue: "넓이 S = 1/2 lr 계산: π 앞의 계수 숫자 입력! (l=2π, r=6)"
+                };
+            }
+            return mission;
+        }
+
+        // 5-second lockout cooldown penalty
+        function triggerLockoutPenalty() {
+            if (isLockedOut) return;
+            isLockedOut = true;
+            sfx.error();
+
+            const lockoutBox = document.getElementById('lockout-penalty-box');
+            const timerEl = document.getElementById('lockout-timer-num');
+            lockoutBox.classList.remove('hidden');
+
+            timerEl.innerText = '5.0';
+            if (lockoutTimerInterval) clearInterval(lockoutTimerInterval);
+            const startAt = Date.now();
+
+            lockoutTimerInterval = setInterval(() => {
+                const elapsed = Date.now() - startAt;
+                const left = Math.max(0, (5000 - elapsed) / 1000);
+                timerEl.innerText = left.toFixed(1);
+
+                if (left <= 0) {
+                    clearInterval(lockoutTimerInterval);
+                    lockoutTimerInterval = null;
+                    isLockedOut = false;
+                    lockoutBox.classList.add('hidden');
+                    sfx.playTone(560, 'sine', 0.15, 0.2);
+                    showStepFeedback("⚡ [냉각 완료] 쉴드 제어 콘솔이 정상 복구되었습니다. 신중히 입력하세요!", false);
+                }
+            }, 100);
+        }
+
+        function mergeMembers(listA = [], listB = []) {
+            const map = new Map();
+            [...listA, ...listB].forEach(item => {
+                if (!item) return;
+                const obj = typeof item === 'string' 
+                    ? { name: item, joinedAt: Date.now() } 
+                    : { name: item.name, joinedAt: item.joinedAt || Date.now() };
+                if (!map.has(obj.name) || map.get(obj.name).joinedAt > obj.joinedAt) {
+                    map.set(obj.name, obj);
+                }
+            });
+            return Array.from(map.values()).sort((a, b) => 
+                a.joinedAt !== b.joinedAt ? a.joinedAt - b.joinedAt : a.name.localeCompare(b.name)
+            );
+        }
+
+        function getStageActorIndex(stage, teamSize, problemCount = 1) {
+            if (teamSize <= 1) return 0;
+            const shift = (Math.max(1, problemCount) - 1) % teamSize;
+            return (stage + shift) % teamSize;
+        }
+
+        function getRoleDescription(memberIndex, teamSize, problemCount = 1) {
+            if (teamSize <= 1) return "올라운드 치프 아크 수호관 (전 구역 단독 제어)";
+            const stageNames = [
+                "① 중심각/비례 분석",
+                "② 호(Arc) 궤적 유도",
+                "③ 에너지 면적 압축",
+                "④ 쉴드 전개 & 카운터 포격 🚀"
+            ];
+            const myAssignedStages = [];
+            for (let s = 0; s < 4; s++) {
+                if (getStageActorIndex(s, teamSize, problemCount) === memberIndex) {
+                    myAssignedStages.push(stageNames[s]);
+                }
+            }
+            return `${memberIndex + 1}번 대원 [${myAssignedStages.join(' + ')}]`;
+        }
+
+        function createInitialRoomData() {
+            return {
+                blueDefense: 0,
+                redDefense: 0,
+                blueMembers: [],
+                redMembers: [],
+                blueStage: 0,
+                redStage: 0,
+                blueProblemCount: 1,
+                redProblemCount: 1,
+                blueMission: generateSectorMission(1),
+                redMission: generateSectorMission(1),
+                blueShieldVisual: { angleSet: false, arcSet: false, areaSet: false, deployed: false },
+                redShieldVisual: { angleSet: false, arcSet: false, areaSet: false, deployed: false },
+                lastLaser: null,
+                lastPing: null,
+                updatedAt: Date.now()
+            };
+        }
+
+        window.joinTeam = async function(team) {
+            const name = document.getElementById('player-name').value.trim();
+            const code = document.getElementById('room-code').value.trim();
+
+            if (!name) {
+                showCustomModal('입력 오류', '기하 방어관 닉네임을 입력해 주세요!');
+                return;
+            }
+            if (!code) {
+                showCustomModal('입력 오류', '배틀룸 코드를 입력해 주세요!');
+                return;
+            }
+
+            currentUserName = name;
+            currentRoomCode = code;
+            myTeam = team;
+
+            const myMemberObj = { name: currentUserName, joinedAt: Date.now() };
+            document.getElementById('lobby-status').innerText = "에이지스 통신망에 접속 중입니다...";
+
+            try {
+                if (window.BroadcastChannel) {
+                    if (bc) bc.close();
+                    bc = new BroadcastChannel(`aegis_arc_${currentRoomCode}`);
+                    bc.onmessage = (event) => {
+                        const msg = event.data;
+                        if (!msg) return;
+                        if (msg.type === 'SYNC_STATE') {
+                            applyRoomState(msg.payload, false);
+                        } else if (msg.type === 'REQUEST_STATE') {
+                            if (lastKnownRoomData) {
+                                bc.postMessage({ type: 'SYNC_STATE', payload: lastKnownRoomData });
+                            }
+                        } else if (msg.type === 'MEMBER_JOIN') {
+                            if (lastKnownRoomData) {
+                                const updated = { ...lastKnownRoomData };
+                                if (msg.team === 'blue') {
+                                    updated.blueMembers = mergeMembers(updated.blueMembers, [msg.member]);
+                                } else {
+                                    updated.redMembers = mergeMembers(updated.redMembers, [msg.member]);
+                                }
+                                updated.updatedAt = Date.now();
+                                applyRoomState(updated, true);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            const withTimeout = (p, ms = 2000) => Promise.race([
+                p,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+            ]);
+
+            let initialData = null;
+
+            try {
+                if (!useFallback && db) {
+                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
+                    const snap = await withTimeout(getDoc(roomRef));
+
+                    if (snap.exists()) {
+                        initialData = snap.data();
+                    } else {
+                        initialData = createInitialRoomData();
+                    }
+
+                    if (team === 'blue') {
+                        initialData.blueMembers = mergeMembers(initialData.blueMembers, [myMemberObj]);
+                    } else {
+                        initialData.redMembers = mergeMembers(initialData.redMembers, [myMemberObj]);
+                    }
+
+                    initialData.updatedAt = Date.now();
+                    await withTimeout(setDoc(roomRef, initialData, { merge: true }));
+                    startFirestoreListener(roomRef);
+                }
+            } catch (err) {
+                useFallback = true;
+            }
+
+            if (!initialData) {
+                initialData = createInitialRoomData();
+                if (team === 'blue') initialData.blueMembers = [myMemberObj];
+                else initialData.redMembers = [myMemberObj];
+
+                if (bc) {
+                    bc.postMessage({ type: 'REQUEST_STATE' });
+                    bc.postMessage({ type: 'MEMBER_JOIN', member: myMemberObj, team: myTeam });
+                }
+            }
+
+            applyRoomState(initialData, true);
+
+            document.getElementById('lobby-screen').classList.add('hidden');
+            document.getElementById('battle-screen').classList.remove('hidden');
+            
+            initArcCanvas();
+            sfx.shieldDeploy();
+        };
+
+        function startFirestoreListener(roomRef) {
+            if (unsubscribeRoom) unsubscribeRoom();
+            unsubscribeRoom = onSnapshot(roomRef, (snap) => {
+                if (!snap.exists()) return;
+                applyRoomState(snap.data(), false);
+            }, () => { useFallback = true; });
+        }
+
+        function applyRoomState(data, broadcastEcho = false) {
+            if (!data) return;
+
+            if (lastKnownRoomData) {
+                data.blueMembers = mergeMembers(lastKnownRoomData.blueMembers, data.blueMembers);
+                data.redMembers = mergeMembers(lastKnownRoomData.redMembers, data.redMembers);
+            } else {
+                data.blueMembers = mergeMembers([], data.blueMembers);
+                data.redMembers = mergeMembers([], data.redMembers);
+            }
+
+            lastKnownRoomData = data;
+
+            // Trigger Counter Laser and Shield Blast Animation
+            if (data.lastLaser && (!window.lastObservedLaserId || window.lastObservedLaserId !== data.lastLaser.id)) {
+                window.lastObservedLaserId = data.lastLaser.id;
+                triggerCounterLaserAnimation(data.lastLaser.team, data.lastLaser.mission);
+            }
+
+            // Tactical Ping Event
+            if (data.lastPing && (!window.lastObservedPingId || window.lastObservedPingId !== data.lastPing.id)) {
+                window.lastObservedPingId = data.lastPing.id;
+                if (data.lastPing.team === myTeam) {
+                    addTacticalPing(data.lastPing.angle, data.lastPing.sender);
+                }
+            }
+
+            updateDefenseHUD(data.blueDefense, data.redDefense);
+
+            const bMembers = (data.blueMembers || []).map(m => m.name || m);
+            const rMembers = (data.redMembers || []).map(m => m.name || m);
+            document.getElementById('blue-members').innerText = `대원(${bMembers.length}명): ${bMembers.join(', ') || '대기 중'}`;
+            document.getElementById('red-members').innerText = `대원(${rMembers.length}명): ${rMembers.join(', ') || '대기 중'}`;
+
+            updatePipelineUI(data);
+
+            if ((data.blueDefense >= 5 || data.redDefense >= 5) && !battleEnded) {
+                battleEnded = true;
+                const winnerTeam = data.blueDefense >= 5 ? 'blue' : 'red';
+                triggerGrandVictory(winnerTeam, data);
+            }
+
+            if (broadcastEcho && bc) {
+                try {
+                    bc.postMessage({ type: 'SYNC_STATE', payload: data });
+                } catch (e) {}
+            }
+        }
+
+        async function syncStateUpdate(nextData) {
+            applyRoomState(nextData, true);
+            if (!useFallback && db) {
+                try {
+                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
+                    await updateDoc(roomRef, nextData);
+                } catch (e) {
+                    useFallback = true;
+                }
+            }
+        }
+
+        function updateDefenseHUD(blueDefense = 0, redDefense = 0) {
+            const bDef = Math.min(5, Math.max(0, blueDefense));
+            const rDef = Math.min(5, Math.max(0, redDefense));
+
+            document.getElementById('blue-defense-count').innerText = bDef;
+            document.getElementById('red-defense-count').innerText = rDef;
+
+            const bIcons = document.getElementById('blue-defense-icons');
+            bIcons.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                bIcons.innerHTML += (i < bDef) ? '<span>⚡</span>' : '<span class="opacity-30">🛡️</span>';
+            }
+
+            const rIcons = document.getElementById('red-defense-icons');
+            rIcons.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                rIcons.innerHTML += (i < rDef) ? '<span>⚡</span>' : '<span class="opacity-30">🛡️</span>';
+            }
+        }
+
+        function updatePipelineUI(data) {
+            const team = myTeam;
+            const myRawMembers = team === 'blue' ? (data.blueMembers || []) : (data.redMembers || []);
+            const myMembers = mergeMembers([], myRawMembers);
+            const currentStage = team === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
+            const currentMission = team === 'blue' ? data.blueMission : data.redMission;
+            const problemCount = team === 'blue' ? (data.blueProblemCount || 1) : (data.redProblemCount || 1);
+
+            if (!currentMission) return;
+
+            document.getElementById('current-threat-name').innerText = `메테오 폭격 #${problemCount}`;
+
+            const clueDisplay = document.getElementById('mission-clue-display');
+            if (currentStage === 0) {
+                clueDisplay.innerText = `【위협 포착】 ${currentMission.step0Clue}`;
+            } else if (currentStage === 1) {
+                clueDisplay.innerText = `【중심각 x = ${currentMission.x}° 전개 완료】 ${currentMission.step1Clue}`;
+            } else if (currentStage === 2) {
+                clueDisplay.innerText = `【호의 길이 l = ${currentMission.arcCoef}π 궤적 락온】 ${currentMission.step2Clue}`;
+            } else {
+                clueDisplay.innerText = `【부채꼴 에너지 완전 압축: S = ${currentMission.areaCoef}π】 에이지스 아크 방어막을 전개하여 폭격을 튕겨내고 반격하세요!`;
+            }
+
+            const angleHud = document.getElementById('arc-hud-angle');
+            angleHud.innerText = `중심각 ${currentMission.x}° (${currentMission.startAngle}° ~ ${currentMission.endAngle}°)`;
+
+            const teamBadge = document.getElementById('my-team-badge');
+            if (team === 'blue') {
+                teamBadge.innerText = `🔵 청군 블루 아크 [웨이브 #${problemCount}]`;
+                teamBadge.className = 'text-xs px-3.5 py-1.5 bg-cyan-500/25 text-cyan-300 border border-cyan-400 rounded-full font-bold';
+            } else {
+                teamBadge.innerText = `🔴 홍군 레드 이지스 [웨이브 #${problemCount}]`;
+                teamBadge.className = 'text-xs px-3.5 py-1.5 bg-rose-500/25 text-rose-300 border border-rose-400 rounded-full font-bold';
+            }
+
+            const teamSize = Math.max(1, myMembers.length);
+            const myIndex = myMembers.findIndex(m => m.name === currentUserName);
+            const activeMemberIndex = getStageActorIndex(currentStage, teamSize, problemCount);
+            const activeMemberObj = myMembers[activeMemberIndex];
+            const activeMemberName = activeMemberObj ? activeMemberObj.name : `${activeMemberIndex + 1}번 대원`;
+
+            const isMyTurn = (myIndex !== -1) && (myIndex === activeMemberIndex);
+
+            if (isMyTurn && !prevWasMyTurn) {
+                sfx.shieldDeploy();
+            }
+            prevWasMyTurn = isMyTurn;
+
+            const roleBadge = document.getElementById('my-role-badge');
+            if (myIndex !== -1) {
+                roleBadge.innerText = `내 포지션: ${getRoleDescription(myIndex, teamSize, problemCount)}`;
+                roleBadge.className = isMyTurn 
+                    ? 'text-xs px-3.5 py-1.5 bg-yellow-400 text-slate-950 border-2 border-yellow-300 rounded-full font-arc animate-pulse'
+                    : 'text-xs px-3.5 py-1.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-full font-bold';
+            } else {
+                roleBadge.innerText = "사령부 관전 중";
+            }
+
+            const instEl = document.getElementById('step-instruction');
+            const numControls = document.getElementById('number-input-control');
+            const deployControls = document.getElementById('shield-deploy-control');
+            const waitingNotice = document.getElementById('waiting-notice');
+            const currentActorEl = document.getElementById('current-actor-name');
+            const stepNumInput = document.getElementById('step-number-input');
+            const piUnitLabel = document.getElementById('pi-unit-label');
+
+            if (currentStage === 0) {
+                instEl.innerText = "【1단계: 중심각 x° 분석】 위협 힌트를 바탕으로 부채꼴의 중심각 크기(x°) 숫자를 입력하세요!";
+                piUnitLabel.classList.add('hidden');
+                stepNumInput.placeholder = "중심각 크기 (예: 60)";
+            } else if (currentStage === 1) {
+                instEl.innerText = "【2단계: 호(Arc) 궤적 유도】 공식 l = 2πr × (x/360)을 계산하여 원주율 π 앞의 계수 숫자를 입력하세요!";
+                piUnitLabel.classList.remove('hidden');
+                stepNumInput.placeholder = "π 앞의 계수 숫자";
+            } else if (currentStage === 2) {
+                instEl.innerText = "【3단계: 넓이 에너지 압축】 공식 S = 1/2 lr 또는 πr² × (x/360)을 계산하여 π 앞의 계수 숫자를 입력하세요!";
+                piUnitLabel.classList.remove('hidden');
+                stepNumInput.placeholder = "π 앞의 계수 숫자";
+            } else if (currentStage === 3) {
+                instEl.innerText = "【4단계: 쉴드 전개 & 카운터 포격】 방어막 압축 완료! 버튼을 터치하여 폭격을 튕겨내고 반격 레이저를 쏘세요!";
+            }
+
+            if (isMyTurn) {
+                waitingNotice.classList.add('hidden');
+                if (currentStage <= 2) {
+                    deployControls.classList.add('hidden');
+                    numControls.classList.remove('hidden');
+                    stepNumInput.disabled = false;
+                    stepNumInput.value = '';
+                    stepNumInput.focus();
+                } else {
+                    numControls.classList.add('hidden');
+                    deployControls.classList.remove('hidden');
+                }
+            } else {
+                numControls.classList.add('hidden');
+                deployControls.classList.add('hidden');
+                waitingNotice.classList.remove('hidden');
+                currentActorEl.innerText = `${activeMemberName} (${activeMemberIndex + 1}번 대원)`;
+            }
+
+            const stageTitles = [
+                "① 중심각/비례 분석",
+                "② 호(Arc) 궤적선",
+                "③ 부채꼴 넓이 압축",
+                "④ 쉴드 전개 & 반격 🚀"
+            ];
+
+            for (let s = 0; s < 4; s++) {
+                const card = document.getElementById(`stage-card-${s}`);
+                const stageActorIdx = getStageActorIndex(s, teamSize, problemCount);
+                const stageActorObj = myMembers[stageActorIdx];
+                const stageActorName = stageActorObj ? stageActorObj.name : `${stageActorIdx + 1}번 대원`;
+                const isThisMine = (myIndex === stageActorIdx);
+
+                card.innerHTML = `<div class="font-bold text-xs">${stageTitles[s]}</div>
+                                  <div class="text-[11px] mt-1 ${isThisMine ? 'text-yellow-300 font-bold' : 'text-slate-400'}">담당: ${stageActorName}${isThisMine ? ' (나)' : ''}</div>`;
+
+                if (s === currentStage) {
+                    card.className = "p-2.5 rounded-xl border-2 transition-all bg-yellow-400/20 border-yellow-300 text-yellow-300 font-bold animate-pulse shadow-lg";
+                } else if (s < currentStage) {
+                    card.className = "p-2.5 rounded-xl border transition-all bg-cyan-950/60 border-cyan-500/60 text-cyan-300 font-semibold";
+                } else {
+                    card.className = "p-2.5 rounded-xl border transition-all bg-slate-950/60 border-slate-800 text-slate-500";
+                }
+            }
+        }
+
+        window.submitStep = async function() {
+            if (isLockedOut) return;
+            if (!lastKnownRoomData) return;
+            const inputEl = document.getElementById('step-number-input');
+            const val = parseFloat(inputEl.value.trim());
+
+            if (isNaN(val)) {
+                showStepFeedback("숫자를 입력해 주세요!", true);
+                sfx.error();
+                return;
+            }
+
+            const data = lastKnownRoomData;
+            const currentStage = myTeam === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
+            const mission = myTeam === 'blue' ? data.blueMission : data.redMission;
+
+            if (currentStage === 0) {
+                if (val === mission.x) {
+                    sfx.success();
+                    const nextData = { ...data };
+                    if (myTeam === 'blue') {
+                        nextData.blueStage = 1;
+                        nextData.blueShieldVisual.angleSet = true;
+                    } else {
+                        nextData.redStage = 1;
+                        nextData.redShieldVisual.angleSet = true;
+                    }
+                    showStepFeedback(`✨ [중심각 x = ${val}° 락온 완료!] 부채꼴 각도선 전개! 2번 대원 호의 길이(l) 유도 개시!`, false);
+                    nextData.updatedAt = Date.now();
+                    await syncStateUpdate(nextData);
+                } else {
+                    showStepFeedback(`❌ 중심각 계산 오류! (찍기 방지 5초 실드 과열 잠금)`, true);
+                    triggerLockoutPenalty();
+                }
+            } else if (currentStage === 1) {
+                if (val === mission.arcCoef) {
+                    sfx.success();
+                    const nextData = { ...data };
+                    if (myTeam === 'blue') {
+                        nextData.blueStage = 2;
+                        nextData.blueShieldVisual.arcSet = true;
+                    } else {
+                        nextData.redStage = 2;
+                        nextData.redShieldVisual.arcSet = true;
+                    }
+                    showStepFeedback(`✨ [호의 길이 l = ${val}π 고정 완료!] 원호 경계선 활성화! 3번 대원 부채꼴 넓이(S) 압축 개시!`, false);
+                    nextData.updatedAt = Date.now();
+                    await syncStateUpdate(nextData);
+                } else {
+                    showStepFeedback(`❌ 호의 길이 계산 오류! l = 2πr × (x/360) (5초 실드 과열 잠금)`, true);
+                    triggerLockoutPenalty();
+                }
+            } else if (currentStage === 2) {
+                if (val === mission.areaCoef) {
+                    sfx.success();
+                    const nextData = { ...data };
+                    if (myTeam === 'blue') {
+                        nextData.blueStage = 3;
+                        nextData.blueShieldVisual.areaSet = true;
+                    } else {
+                        nextData.redStage = 3;
+                        nextData.redShieldVisual.areaSet = true;
+                    }
+                    showStepFeedback(`✨ [넓이 S = ${val}π 에너지 압축 완료!] 4번 대원 에이지스 아크를 전개하여 반격하세요!`, false);
+                    nextData.updatedAt = Date.now();
+                    await syncStateUpdate(nextData);
+                } else {
+                    showStepFeedback(`❌ 넓이 계산 오류! S = 1/2 lr = πr² × (x/360) (5초 실드 과열 잠금)`, true);
+                    triggerLockoutPenalty();
+                }
+            }
+        };
+
+        window.deployShieldStep = async function() {
+            if (isLockedOut) return;
+            if (!lastKnownRoomData) return;
+            const data = lastKnownRoomData;
+            const currentStage = myTeam === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
+            const mission = myTeam === 'blue' ? data.blueMission : data.redMission;
+
+            if (currentStage !== 3) return;
+
+            sfx.counterLaser();
+            showStepFeedback("⚡ [에이지스 아크 전개!] 적 폭격을 완벽 방어하고 압축 레이저 빔을 발사합니다!", false);
+
+            const nextData = { ...data };
+            nextData.lastLaser = {
+                team: myTeam,
+                mission: mission,
+                id: Date.now()
+            };
+
+            setTimeout(async () => {
+                const latest = lastKnownRoomData || nextData;
+                const hitData = { ...latest };
+                
+                if (myTeam === 'blue') {
+                    hitData.blueDefense = Math.min(5, (hitData.blueDefense || 0) + 1);
+                    const nextProbCount = (hitData.blueProblemCount || 1) + 1;
+                    hitData.blueStage = 0;
+                    hitData.blueProblemCount = nextProbCount;
+                    hitData.blueMission = generateSectorMission(nextProbCount);
+                    hitData.blueShieldVisual = { angleSet: false, arcSet: false, areaSet: false, deployed: false };
+                } else {
+                    hitData.redDefense = Math.min(5, (hitData.redDefense || 0) + 1);
+                    const nextProbCount = (hitData.redProblemCount || 1) + 1;
+                    hitData.redStage = 0;
+                    hitData.redProblemCount = nextProbCount;
+                    hitData.redMission = generateSectorMission(nextProbCount);
+                    hitData.redShieldVisual = { angleSet: false, arcSet: false, areaSet: false, deployed: false };
+                }
+
+                sfx.explosion();
+                showStepFeedback("💥 [웨이브 요격 성공!] 방어막 완충 완료! 다음 위협 각도로 코어를 회전합니다! (역할 자동 순환)", false);
+                hitData.updatedAt = Date.now();
+                await syncStateUpdate(hitData);
+            }, 1500);
+
+            nextData.updatedAt = Date.now();
+            await syncStateUpdate(nextData);
+        };
+
+        function showStepFeedback(text, isError) {
+            const el = document.getElementById('battle-feedback');
+            el.innerText = text;
+            el.className = isError 
+                ? "text-sm font-bold text-rose-400 min-h-[24px] mt-3 animate-pulse" 
+                : "text-sm font-bold text-cyan-400 min-h-[24px] mt-3";
+        }
+
+        window.sendQuickCheer = function(text) {
+            showStepFeedback(`📻 [아크 무전] ${text}`, false);
+            sfx.playTone(550, 'sine', 0.12, 0.2);
+        };
+
+        window.showCustomModal = function(title, msg) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = msg;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        };
+
+        window.closeCustomModal = function() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        };
+
+        function triggerGrandVictory(winnerTeam, roomData) {
+            sfx.victoryFanfare();
+            const isBlueWin = winnerTeam === 'blue';
+            const winnerName = isBlueWin ? "🔵 청군 코어 (블루 아크)" : "🔴 홍군 코어 (레드 이지스)";
+            const rawMembers = isBlueWin ? roomData.blueMembers : roomData.redMembers;
+            const members = (rawMembers || []).map(m => m.name || m);
+
+            document.getElementById('victory-team-title').innerText = `${winnerName} 대승리!`;
+            document.getElementById('victory-members-list').innerText = members.length > 0 ? members.join(', ') : '단독 아크 수호관';
+            document.getElementById('victory-total-time').innerText = `${((Date.now() - missionStartTime) / 1000).toFixed(1)}초`;
+
+            setTimeout(() => {
+                document.getElementById('victory-modal').classList.remove('hidden');
+            }, 1200);
+        }
+
+        let canvas, ctx;
+        let radarSweep = 0;
+        let tacticalPings = [];
+        let laserProjectiles = [];
+        let explosions = [];
+
+        function initArcCanvas() {
+            canvas = document.getElementById('arc-canvas');
+            ctx = canvas.getContext('2d');
+            resizeArcCanvas();
+            window.addEventListener('resize', resizeArcCanvas);
+
+            // Canvas touch ping
+            canvas.addEventListener('click', handleCanvasPing);
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches[0]) {
+                    const touch = e.touches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    triggerPingFromCanvas(touch.clientX - rect.left, touch.clientY - rect.top);
+                }
+            });
+
+            requestAnimationFrame(renderArcLoop);
+        }
+
+        function resizeArcCanvas() {
+            if (!canvas || !canvas.parentElement) return;
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        function handleCanvasPing(e) {
+            const rect = canvas.getBoundingClientRect();
+            triggerPingFromCanvas(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function triggerPingFromCanvas(canvasX, canvasY) {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const angleRad = Math.atan2(canvasY - cy, canvasX - cx);
+            let angleDeg = Math.round((angleRad * 180 / Math.PI));
+            if (angleDeg < 0) angleDeg += 360;
+
+            sfx.tacticalPing();
+            addTacticalPing(angleDeg, currentUserName || '대원');
+
+            if (lastKnownRoomData) {
+                const pingData = { ...lastKnownRoomData };
+                pingData.lastPing = {
+                    team: myTeam,
+                    angle: angleDeg,
+                    sender: currentUserName || '대원',
+                    id: Date.now() + Math.random()
+                };
+                syncStateUpdate(pingData);
+            }
+        }
+
+        function addTacticalPing(angleDeg, sender) {
+            tacticalPings.push({
+                angle: angleDeg,
+                sender: sender,
+                radius: 20,
+                alpha: 1
+            });
+        }
+
+        function triggerCounterLaserAnimation(team, mission) {
+            laserProjectiles.push({
+                team: team,
+                angle: (mission.startAngle + mission.x / 2) * Math.PI / 180,
+                progress: 0
+            });
+        }
+
+        function renderArcLoop() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const maxR = Math.min(w, h) * 0.44;
+
+            // 1. Radar Circular Starfield Base
+            ctx.save();
+            ctx.fillStyle = '#020b12';
+            ctx.beginPath();
+            ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Concentric Range Rings
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+            ctx.lineWidth = 1;
+            for (let r = 1; r <= 4; r++) {
+                ctx.beginPath();
+                ctx.arc(cx, cy, (r / 4) * maxR, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Degree lines every 30°
+            for (let deg = 0; deg < 360; deg += 30) {
+                const rad = (deg * Math.PI) / 180;
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + Math.cos(rad) * maxR, cy + Math.sin(rad) * maxR);
+                ctx.stroke();
+
+                // Degree text labels
+                ctx.font = 'bold 10px monospace';
+                ctx.fillStyle = 'rgba(125, 211, 252, 0.6)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const labelX = cx + Math.cos(rad) * (maxR + 14);
+                const labelY = cy + Math.sin(rad) * (maxR + 14);
+                ctx.fillText(`${deg}°`, labelX, labelY);
+            }
+
+            // Central Core Base
+            ctx.fillStyle = '#0369a1';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Rotating sweep scanner
+            radarSweep += 0.02;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(radarSweep) * maxR, cy + Math.sin(radarSweep) * maxR);
+            ctx.stroke();
+            ctx.restore();
+
+            // 2. Render Sector Aegis Shield for active team
+            if (lastKnownRoomData) {
+                const data = lastKnownRoomData;
+                const mission = myTeam === 'blue' ? data.blueMission : data.redMission;
+                const stage = myTeam === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
+
+                if (mission) {
+                    const startRad = (mission.startAngle * Math.PI) / 180;
+                    const endRad = (mission.endAngle * Math.PI) / 180;
+                    const isBlue = myTeam === 'blue';
+                    const mainColor = isBlue ? '#38bdf8' : '#fb7185';
+                    const fillColor = isBlue ? 'rgba(56, 189, 248, 0.35)' : 'rgba(251, 113, 133, 0.35)';
+
+                    // Threat incoming meteors indicator (outside radar)
+                    ctx.save();
+                    const midRad = ((mission.startAngle + mission.x / 2) * Math.PI) / 180;
+                    const threatDist = maxR * 0.95;
+                    ctx.font = '18px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText("☄️", cx + Math.cos(midRad) * threatDist, cy + Math.sin(midRad) * threatDist);
+                    ctx.restore();
+
+                    // Step 1: Central Angle Rays (x°)
+                    if (stage >= 1) {
+                        ctx.save();
+                        ctx.strokeStyle = '#facc15';
+                        ctx.lineWidth = 2.5;
+                        ctx.setLineDash([6, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(cx, cy);
+                        ctx.lineTo(cx + Math.cos(startRad) * maxR * 0.85, cy + Math.sin(startRad) * maxR * 0.85);
+                        ctx.moveTo(cx, cy);
+                        ctx.lineTo(cx + Math.cos(endRad) * maxR * 0.85, cy + Math.sin(endRad) * maxR * 0.85);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+
+                        // Angle Arc marker near core
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, 38, startRad, endRad);
+                        ctx.stroke();
+                        ctx.font = 'bold 12px font-arc, sans-serif';
+                        ctx.fillStyle = '#fde047';
+                        ctx.fillText(`${mission.x}°`, cx + Math.cos(midRad) * 55, cy + Math.sin(midRad) * 55);
+                        ctx.restore();
+                    }
+
+                    // Step 2: Arc Length Outer Curve (l)
+                    if (stage >= 2) {
+                        ctx.save();
+                        ctx.strokeStyle = mainColor;
+                        ctx.lineWidth = 5;
+                        ctx.shadowBlur = 18;
+                        ctx.shadowColor = mainColor;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, maxR * 0.85, startRad, endRad);
+                        ctx.stroke();
+
+                        ctx.font = 'bold 12px font-arc, sans-serif';
+                        ctx.fillStyle = mainColor;
+                        ctx.fillText(`호 l = ${mission.arcCoef}π`, cx + Math.cos(midRad) * (maxR * 0.85 + 18), cy + Math.sin(midRad) * (maxR * 0.85 + 18));
+                        ctx.restore();
+                    }
+
+                    // Step 3 & 4: Filled Area (S)
+                    if (stage >= 3) {
+                        ctx.save();
+                        ctx.fillStyle = fillColor;
+                        ctx.beginPath();
+                        ctx.moveTo(cx, cy);
+                        ctx.arc(cx, cy, maxR * 0.85, startRad, endRad);
+                        ctx.closePath();
+                        ctx.fill();
+
+                        ctx.font = 'bold 13px font-arc, sans-serif';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = mainColor;
+                        ctx.fillText(`넓이 S = ${mission.areaCoef}π`, cx + Math.cos(midRad) * (maxR * 0.45), cy + Math.sin(midRad) * (maxR * 0.45));
+                        ctx.restore();
+                    }
+                }
+            }
+
+            // 3. Render Counter Laser Beams
+            for (let i = laserProjectiles.length - 1; i >= 0; i--) {
+                const laser = laserProjectiles[i];
+                laser.progress += 0.05;
+
+                const beamLength = maxR * 1.2;
+                const endX = cx + Math.cos(laser.angle) * beamLength * laser.progress;
+                const endY = cy + Math.sin(laser.angle) * beamLength * laser.progress;
+
+                ctx.save();
+                ctx.strokeStyle = laser.team === 'blue' ? '#38bdf8' : '#fb7185';
+                ctx.lineWidth = 8;
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+                ctx.restore();
+
+                if (laser.progress >= 1) {
+                    for (let k = 0; k < 20; k++) {
+                        const sparkAngle = Math.random() * Math.PI * 2;
+                        const spd = Math.random() * 4 + 2;
+                        explosions.push({
+                            x: endX,
+                            y: endY,
+                            vx: Math.cos(sparkAngle) * spd,
+                            vy: Math.sin(sparkAngle) * spd,
+                            radius: Math.random() * 4 + 2,
+                            color: laser.team === 'blue' ? '#38bdf8' : '#fb7185',
+                            alpha: 1
+                        });
+                    }
+                    laserProjectiles.splice(i, 1);
+                }
+            }
+
+            // 4. Render Tactical Pings
+            for (let i = tacticalPings.length - 1; i >= 0; i--) {
+                const p = tacticalPings[i];
+                p.radius += 1.2;
+                p.alpha -= 0.025;
+
+                const rad = (p.angle * Math.PI) / 180;
+                const px = cx + Math.cos(rad) * (maxR * 0.65);
+                const py = cy + Math.sin(rad) * (maxR * 0.65);
+
+                ctx.save();
+                ctx.strokeStyle = `rgba(250, 204, 21, ${p.alpha})`;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(px, py, p.radius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.fillStyle = `rgba(254, 240, 138, ${p.alpha})`;
+                ctx.font = 'bold 11px font-arc, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`📍 ${p.sender} (${p.angle}°)`, px, py - p.radius - 4);
+                ctx.restore();
+
+                if (p.alpha <= 0) tacticalPings.splice(i, 1);
+            }
+
+            // 5. Render Explosion Sparks
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                const exp = explosions[i];
+                exp.x += exp.vx;
+                exp.y += exp.vy;
+                exp.alpha -= 0.03;
+
+                ctx.save();
+                ctx.globalAlpha = exp.alpha;
+                ctx.fillStyle = exp.color;
+                ctx.beginPath();
+                ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                if (exp.alpha <= 0) explosions.splice(i, 1);
+            }
+
+            ctx.restore();
+            requestAnimationFrame(renderArcLoop);
+        }
+    </script>
+</body>
+</html>
