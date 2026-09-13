@@ -1506,19 +1506,35 @@
                 const endY = cy + Math.sin(laser.angle) * beamLength * laser.progress;
 
                 ctx.save();
-                const laserWidth = laser.isFever ? 14 : (laser.tacticalType === 'reflect' ? 10 : 7);
-                const laserColor = laser.isFever 
-                    ? '#facc15' 
-                    : (laser.tacticalType === 'emp' ? '#c084fc' : (laser.team === 'blue' ? '#38bdf8' : '#fb7185'));
+                const laserWidth = laser.isFever ? 14 : (laser.tacticalType === 'reflect' ? 11 : (laser.tacticalType === 'emp' ? 13 : 9));
+                let laserColor = '#38bdf8';
+
+                if (laser.isFever || laser.tacticalType === 'harvest') {
+                    laserColor = '#facc15';
+                } else if (laser.tacticalType === 'emp') {
+                    laserColor = '#c084fc';
+                } else {
+                    laserColor = laser.team === 'blue' ? '#38bdf8' : '#fb7185';
+                }
 
                 ctx.strokeStyle = laserColor;
                 ctx.lineWidth = laserWidth;
                 ctx.shadowBlur = 25;
-                ctx.shadowColor = '#ffffff';
+                ctx.shadowColor = laserColor;
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
                 ctx.lineTo(endX, endY);
                 ctx.stroke();
+
+                // Harvest Tactical Mode: Extra Golden Concentric Aura
+                if (laser.tacticalType === 'harvest') {
+                    ctx.strokeStyle = 'rgba(250, 204, 21, 0.4)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 35 + laser.progress * 45, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
                 ctx.restore();
 
                 if (laser.progress >= 1) {
