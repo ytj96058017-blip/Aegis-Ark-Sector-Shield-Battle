@@ -1152,14 +1152,20 @@
             sfx.counterLaser();
 
             let feedbackMsg = "";
+            let transitionDelay = 1500; // default delay
+
             if (tacticalType === 'emp') {
-                feedbackMsg = "🌪️ [우주 먼지 EMP 살포!] 적 기지 레이더를 전자기 안개로 뒤덮었습니다!";
+                feedbackMsg = "🌪️ [우주 먼지 EMP 살포!] 적 기지 레이더를 전자기 안개로 뒤덮었습니다! (상대 조작 마비)";
+                transitionDelay = 1500;
             } else if (tacticalType === 'harvest') {
-                feedbackMsg = "🔋 [에너지 하베스트 성공!] 폭격을 흡수하여 다음 웨이브 황금 피버를 확보했습니다!";
+                feedbackMsg = "🔋 [에너지 하베스트 충전!] 폭격을 흡수해 방열 실드를 형성했습니다! (다음 웨이브 오답 5초 잠금 1회 면제!)";
+                transitionDelay = 1500;
             } else {
+                // 'reflect': Speed-Run Mode - snappier transition and fast laser
                 feedbackMsg = isHyperFeverActive 
-                    ? "⚡ [HYPER FEVER!] 황금빛 아크가 폭격을 분쇄하고 슈퍼 카운터 빔포를 격발합니다!" 
-                    : "🛡️ [메가 리플렉트!] 적 폭격을 완벽 방어하고 압축 레이저 빔을 발사합니다!";
+                    ? "⚡ [메가 리플렉트 쾌속 돌파!] 황금빛 아크가 메테오를 즉시 분쇄하고 다음 구역으로 급가속합니다!" 
+                    : "🛡️ [메가 리플렉트 쾌속 돌파!] 폭격을 빛의 속도로 튕겨내고 지체 없이 다음 웨이브로 진격합니다!";
+                transitionDelay = 850; // Snappy speed run!
             }
             showStepFeedback(feedbackMsg, false);
 
@@ -1190,6 +1196,7 @@
                     hitData.blueProblemCount = nextProbCount;
                     hitData.blueMission = generateSectorMission(nextProbCount);
                     hitData.blueShieldVisual = { angleSet: false, arcSet: false, areaSet: false, deployed: false };
+                    if (tacticalType === 'harvest') hitData.blueHeatShield = true;
                 } else {
                     hitData.redDefense = Math.min(5, (hitData.redDefense || 0) + 1);
                     const nextProbCount = (hitData.redProblemCount || 1) + 1;
@@ -1197,20 +1204,17 @@
                     hitData.redProblemCount = nextProbCount;
                     hitData.redMission = generateSectorMission(nextProbCount);
                     hitData.redShieldVisual = { angleSet: false, arcSet: false, areaSet: false, deployed: false };
+                    if (tacticalType === 'harvest') hitData.redHeatShield = true;
                 }
 
-                if (tacticalType === 'harvest') {
-                    isHyperFeverActive = true;
-                } else {
-                    isHyperFeverActive = false;
-                }
+                isHyperFeverActive = false;
                 mistakesOnCurrentWave = 0;
 
                 sfx.explosion();
                 showStepFeedback("💥 [웨이브 요격 성공!] 방어막 완충 완료! 다음 위협 각도로 코어를 회전합니다! (역할 자동 순환)", false);
                 hitData.updatedAt = Date.now();
                 await syncStateUpdate(hitData);
-            }, 1500);
+            }, transitionDelay);
 
             nextData.updatedAt = Date.now();
             await syncStateUpdate(nextData);
