@@ -605,6 +605,24 @@
         // 5-second lockout cooldown penalty
         function triggerLockoutPenalty() {
             if (isLockedOut) return;
+            
+            // 에너지 하베스트로 획득한 방열 실드(오답 1회 면제권) 보유 여부 검사
+            const team = myTeam;
+            const data = lastKnownRoomData;
+            const hasHeatShield = team === 'blue' ? data?.blueHeatShield : data?.redHeatShield;
+
+            if (hasHeatShield) {
+                // 방열 실드 소모 및 5초 잠금 면제 발동!
+                sfx.shieldDeploy();
+                showStepFeedback("🛡️ [방열 실드 발동!] 에너지 하베스트 보호막이 작동하여 5초 잠금을 1회 면제했습니다! 다시 계산하세요!", false);
+                const nextData = { ...data };
+                if (team === 'blue') nextData.blueHeatShield = false;
+                else nextData.redHeatShield = false;
+                nextData.updatedAt = Date.now();
+                syncStateUpdate(nextData);
+                return;
+            }
+
             isLockedOut = true;
             isHyperFeverActive = false;
             mistakesOnCurrentWave++;
@@ -922,6 +940,15 @@
             const angleHud = document.getElementById('arc-hud-angle');
             angleHud.innerText = `중심각 ${currentMission.x}° (${currentMission.startAngle}° ~ ${currentMission.endAngle}°)`;
 
+            // 방열 실드(에너지 하베스트 오답 면제권) HUD 표시
+            const heatShieldBadge = document.getElementById('heat-shield-badge');
+            const hasShield = team === 'blue' ? data.blueHeatShield : data.redHeatShield;
+            if (hasShield) {
+                heatShieldBadge.classList.remove('hidden');
+            } else {
+                heatShieldBadge.classList.add('hidden');
+            }
+
             const teamBadge = document.getElementById('my-team-badge');
             if (team === 'blue') {
                 teamBadge.innerText = `🔵 청군 블루 아크 [웨이브 #${problemCount}]`;
@@ -1152,20 +1179,18 @@
             sfx.counterLaser();
 
             let feedbackMsg = "";
-            let transitionDelay = 1500; // default delay
+            let transitionDelay = 1400;
 
             if (tacticalType === 'emp') {
                 feedbackMsg = "🌪️ [우주 먼지 EMP 살포!] 적 기지 레이더를 전자기 안개로 뒤덮었습니다! (상대 조작 마비)";
-                transitionDelay = 1500;
+                transitionDelay = 1400;
             } else if (tacticalType === 'harvest') {
-                feedbackMsg = "🔋 [에너지 하베스트 충전!] 폭격을 흡수해 방열 실드를 형성했습니다! (다음 웨이브 오답 5초 잠금 1회 면제!)";
-                transitionDelay = 1500;
+                feedbackMsg = "🔋 [에너지 하베스트 충전!] 폭격을 흡수해 방열 실드를 충전했습니다! (다음 웨이브 오답 5초 잠금 1회 면제!)";
+                transitionDelay = 1400;
             } else {
-                // 'reflect': Speed-Run Mode - snappier transition and fast laser
-                feedbackMsg = isHyperFeverActive 
-                    ? "⚡ [메가 리플렉트 쾌속 돌파!] 황금빛 아크가 메테오를 즉시 분쇄하고 다음 구역으로 급가속합니다!" 
-                    : "🛡️ [메가 리플렉트 쾌속 돌파!] 폭격을 빛의 속도로 튕겨내고 지체 없이 다음 웨이브로 진격합니다!";
-                transitionDelay = 850; // Snappy speed run!
+                // 'reflect': 초광속 쾌속 돌파 모드 (지체 없이 초고속 전환)
+                feedbackMsg = "⚡ [메가 리플렉트 초광속 돌파!] 딜레이 없이 즉시 다음 웨이브로 진격합니다!";
+                transitionDelay = 500;
             }
             showStepFeedback(feedbackMsg, false);
 
