@@ -35,6 +35,10 @@
         .core-rotate {
             animation: coreSpin 20s linear infinite;
         }
+        .dust-overlay {
+            background: repeating-radial-gradient(circle, rgba(88, 28, 135, 0.92), rgba(15, 23, 42, 0.96) 12px);
+            backdrop-filter: blur(12px);
+        }
     </style>
 </head>
 <body class="cyber-space-bg text-white min-h-screen flex flex-col justify-between p-3 md:p-6 select-none">
@@ -153,6 +157,16 @@
             <!-- Cooperative Action Console -->
             <div id="action-box" class="relative bg-slate-900/95 border-2 border-cyan-500/70 rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col items-center text-center arc-shield-glow">
                 
+                <!-- Cosmic Dust EMP Overlay (피격 시 5회 닦기) -->
+                <div id="emp-dust-overlay" class="dust-overlay hidden absolute inset-0 rounded-3xl z-40 flex flex-col items-center justify-center p-6 text-center">
+                    <span class="text-5xl animate-bounce mb-2">🌪️</span>
+                    <h4 class="text-2xl font-arc text-purple-300 mb-1">적의 우주 먼지 EMP 피격! 레이더 전자기 교란</h4>
+                    <p class="text-xs md:text-sm text-slate-200 mb-4">화면이 우주 먼지로 뒤덮였습니다! 아래 버튼을 연속으로 탭해 먼지를 닦아내세요!</p>
+                    <button onclick="wipeDust()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-arc text-lg rounded-2xl shadow-xl border-2 border-purple-300 active:scale-95">
+                        🧹 우주 먼지 닦아내기 (<span id="dust-wipe-count">5</span>회 남음)
+                    </button>
+                </div>
+
                 <!-- 찍기 방지 5초 실드 과열 락다운 오버레이 -->
                 <div id="lockout-penalty-box" class="hidden absolute inset-0 bg-slate-950/95 rounded-3xl z-40 flex flex-col items-center justify-center p-6 text-center border-4 border-rose-500 overheat-siren backdrop-blur-md">
                     <span class="text-5xl animate-bounce mb-2">⚠️</span>
@@ -209,9 +223,9 @@
                     <!-- Input Mode 4: Deploy & Counter Laser Fire Button (Step 3) -->
                     <div id="shield-deploy-control" class="hidden flex flex-col items-center gap-2 w-full max-w-md">
                         <button onclick="deployShieldStep()" class="w-full py-4 bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 hover:from-sky-400 hover:to-indigo-400 text-white font-arc text-2xl rounded-2xl shadow-xl border-2 border-cyan-300 active:scale-95 transition animate-pulse flex items-center justify-center gap-2">
-                            <span>🛡️</span><span>에이지스 아크 전개 & 카운터 포격!</span>
+                            <span>🚀</span><span>에이지스 전술 모듈 선택 & 카운터 포격!</span>
                         </button>
-                        <span class="text-xs text-cyan-200 font-semibold">부채꼴 방어막 완벽 형성! 폭격을 튕겨내고 반격 빔을 발사하세요!</span>
+                        <span class="text-xs text-cyan-200 font-semibold">부채꼴 방어막 완벽 형성! 전술 모듈 카드를 선택하여 반격하세요!</span>
                     </div>
 
                     <!-- Waiting Notice for Other Members -->
@@ -264,6 +278,37 @@
             <button onclick="closeCustomModal()" class="bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 font-arc px-6 py-2.5 rounded-xl transition shadow-lg hover:scale-105">
                 확인
             </button>
+        </div>
+    </div>
+
+    <!-- Tactical Module Selection Modal (Step 4 전술 카드 3종 선택창) -->
+    <div id="tactical-select-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 border-2 border-cyan-400 rounded-3xl p-6 max-w-lg w-full text-center shadow-2xl">
+            <div class="text-4xl mb-1">🚀</div>
+            <h3 class="text-2xl font-arc text-yellow-300 mb-1">4단계: 에이지스 전술 모듈 선택</h3>
+            <p id="tactical-fever-bonus" class="text-xs font-bold text-cyan-300 mb-5">원하는 전술 카드를 터치하면 즉시 포격과 고유 효과가 발동됩니다.</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+                <!-- Card 1: Mega Reflect -->
+                <button onclick="chooseTacticalModule('reflect')" class="p-4 rounded-2xl bg-gradient-to-b from-sky-950 to-blue-950 border-2 border-cyan-400 hover:border-yellow-300 flex flex-col items-center gap-2 transition hover:scale-105 active:scale-95 text-center">
+                    <span class="text-3xl">🛡️</span>
+                    <span class="font-arc text-base text-cyan-300">메가 리플렉트</span>
+                    <span class="text-[11px] text-slate-300 leading-tight">폭격을 완벽 방어하고 압축 카운터 레이저 빔 즉시 발사!</span>
+                </button>
+                <!-- Card 2: Cosmic EMP -->
+                <button onclick="chooseTacticalModule('emp')" class="p-4 rounded-2xl bg-gradient-to-b from-purple-950 to-indigo-950 border-2 border-purple-400 hover:border-yellow-300 flex flex-col items-center gap-2 transition hover:scale-105 active:scale-95 text-center">
+                    <span class="text-3xl">🌪️</span>
+                    <span class="font-arc text-base text-purple-300">우주 먼지 EMP</span>
+                    <span class="text-[11px] text-slate-300 leading-tight">적 기지에 전자기 안개 살포! (상대 화면 5회 터치 마비)</span>
+                </button>
+                <!-- Card 3: Energy Harvest -->
+                <button onclick="chooseTacticalModule('harvest')" class="p-4 rounded-2xl bg-gradient-to-b from-amber-950 to-yellow-950 border-2 border-amber-400 hover:border-yellow-300 flex flex-col items-center gap-2 transition hover:scale-105 active:scale-95 text-center">
+                    <span class="text-3xl">🔋</span>
+                    <span class="font-arc text-base text-yellow-300">에너지 하베스트</span>
+                    <span class="text-[11px] text-slate-300 leading-tight">폭격을 흡수해 황금 방어막 형성! (다음 웨이브 확정 피버)</span>
+                </button>
+            </div>
+            <button onclick="closeTacticalModal()" class="text-xs text-slate-400 hover:text-white underline">닫기</button>
         </div>
     </div>
 
@@ -945,8 +990,11 @@
                 } else {
                     numControls.classList.add('hidden');
                     deployControls.classList.remove('hidden');
-                    // 4단계(쉴드 격발관) 차례에 도달 시 전술 모듈 선택 모달 자동 팝업
-                    openTacticalModal();
+                    // 4단계 진입 시 모달 1회 자동 팝업 (사용자가 직접 선택하도록 유도)
+                    if (!window.tacticalModalAutoOpened) {
+                        window.tacticalModalAutoOpened = true;
+                        openTacticalModal();
+                    }
                 }
             } else {
                 numControls.classList.add('hidden');
@@ -1078,9 +1126,6 @@
                     }
                 }
                 modal.classList.remove('hidden');
-            } else {
-                // 안전 Fallback: 모달이 없더라도 멈추지 않고 즉시 포격 실행
-                window.chooseTacticalModule('reflect');
             }
         };
 
@@ -1103,6 +1148,7 @@
 
             if (currentStage !== 3) return;
 
+            window.tacticalModalAutoOpened = false;
             sfx.counterLaser();
 
             let feedbackMsg = "";
@@ -1153,7 +1199,6 @@
                     hitData.redShieldVisual = { angleSet: false, arcSet: false, areaSet: false, deployed: false };
                 }
 
-                // If harvest was selected, maintain fever for the next wave
                 if (tacticalType === 'harvest') {
                     isHyperFeverActive = true;
                 } else {
