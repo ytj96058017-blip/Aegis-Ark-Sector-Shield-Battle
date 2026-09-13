@@ -433,6 +433,25 @@
         const recentProblemsSet = new Set();
         let isHyperFeverActive = false;
         let mistakesOnCurrentWave = 0;
+        let dustWipesRemaining = 5;
+
+        // Dust EMP Functions
+        function activateDustCover() {
+            dustWipesRemaining = 5;
+            document.getElementById('dust-wipe-count').innerText = dustWipesRemaining;
+            document.getElementById('emp-dust-overlay').classList.remove('hidden');
+            sfx.error();
+        }
+
+        window.wipeDust = function() {
+            dustWipesRemaining--;
+            document.getElementById('dust-wipe-count').innerText = dustWipesRemaining;
+            sfx.playTone(350, 'triangle', 0.1, 0.15);
+            if (dustWipesRemaining <= 0) {
+                document.getElementById('emp-dust-overlay').classList.add('hidden');
+                sfx.success();
+            }
+        };
 
         /*
           Procedural Sector Math Generator (Middle School Grade 1, 2nd Semester Geometry)
@@ -625,6 +644,8 @@
                 redShieldVisual: { angleSet: false, arcSet: false, areaSet: false, deployed: false },
                 lastLaser: null,
                 lastPing: null,
+                dustTarget: null,
+                dustId: 0,
                 updatedAt: Date.now()
             };
         }
@@ -768,6 +789,12 @@
                 if (data.lastPing.team === myTeam) {
                     addTacticalPing(data.lastPing.angle, data.lastPing.sender);
                 }
+            }
+
+            // Cosmic Dust EMP detection
+            if (data.dustTarget === myTeam && (!window.lastObservedDustId || window.lastObservedDustId !== data.dustId)) {
+                window.lastObservedDustId = data.dustId;
+                activateDustCover();
             }
 
             updateDefenseHUD(data.blueDefense, data.redDefense);
@@ -914,15 +941,19 @@
                     stepNumInput.disabled = false;
                     stepNumInput.value = '';
                     stepNumInput.focus();
+                    closeTacticalModal();
                 } else {
                     numControls.classList.add('hidden');
                     deployControls.classList.remove('hidden');
+                    // 4단계(쉴드 격발관) 차례에 도달 시 전술 모듈 선택 모달 자동 팝업
+                    openTacticalModal();
                 }
             } else {
                 numControls.classList.add('hidden');
                 deployControls.classList.add('hidden');
                 waitingNotice.classList.remove('hidden');
                 currentActorEl.innerText = `${activeMemberName} (${activeMemberIndex + 1}번 대원)`;
+                closeTacticalModal();
             }
 
             const stageTitles = [
@@ -1032,7 +1063,33 @@
             }
         };
 
-        window.deployShieldStep = async function() {
+        window.openTacticalModal = function() {
+            if (isLockedOut) return;
+            const modal = document.getElementById('tactical-select-modal');
+            if (modal) {
+                const bonusEl = document.getElementById('tactical-fever-bonus');
+                if (isHyperFeverActive) {
+                    bonusEl.innerText = "⚡ [HYPER FEVER!] 무결점 연산 달성! 황금 카운터 빔포와 슈퍼 전술 효과 발동!";
+                    bonusEl.className = "text-xs font-bold text-yellow-300 animate-pulse";
+                } else {
+                    bonusEl.innerText = "선택한 전술 카드의 고유 효과가 레이저와 함께 즉시 발동됩니다.";
+                    bonusEl.className = "text-xs font-bold text-cyan-300";
+                }
+                modal.classList.remove('hidden');
+            }
+        };
+
+        window.closeTacticalModal = function() {
+            const modal = document.getElementById('tactical-select-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.deployShieldStep = function() {
+            openTacticalModal();
+        };
+
+        window.chooseTacticalModule = async function(tacticalType) {
+            closeTacticalModal();
             if (isLockedOut) return;
             if (!lastKnownRoomData) return;
             const data = lastKnownRoomData;
@@ -1042,20 +1099,34 @@
             if (currentStage !== 3) return;
 
             sfx.counterLaser();
-            showStepFeedback(
-                isHyperFeverActive 
+
+            let feedbackMsg = "";
+            if (tacticalType === 'emp') {
+                feedbackMsg = "🌪️ [우주 먼지 EMP 살포!] 적 기지 레이더를 전자기 안개로 뒤덮었습니다!";
+            } else if (tacticalType === 'harvest') {
+                feedbackMsg = "🔋 [에너지 하베스트 성공!] 폭격을 흡수하여 다음 웨이브 황금 피버를 확보했습니다!";
+            } else {
+                feedbackMsg = isHyperFeverActive 
                     ? "⚡ [HYPER FEVER!] 황금빛 아크가 폭격을 분쇄하고 슈퍼 카운터 빔포를 격발합니다!" 
-                    : "⚡ [에이지스 아크 전개!] 적 폭격을 완벽 방어하고 압축 레이저 빔을 발사합니다!", 
-                false
-            );
+                    : "🛡️ [메가 리플렉트!] 적 폭격을 완벽 방어하고 압축 레이저 빔을 발사합니다!";
+            }
+            showStepFeedback(feedbackMsg, false);
 
             const nextData = { ...data };
+            const enemyTeam = myTeam === 'blue' ? 'red' : 'blue';
+
             nextData.lastLaser = {
                 team: myTeam,
                 mission: mission,
+                tacticalType: tacticalType,
                 isFever: isHyperFeverActive,
-                id: Date.now()
+                id: Date.now() + Math.random()
             };
+
+            if (tacticalType === 'emp') {
+                nextData.dustTarget = enemyTeam;
+                nextData.dustId = Date.now();
+            }
 
             setTimeout(async () => {
                 const latest = lastKnownRoomData || nextData;
@@ -1077,7 +1148,12 @@
                     hitData.redShieldVisual = { angleSet: false, arcSet: false, areaSet: false, deployed: false };
                 }
 
-                isHyperFeverActive = false;
+                // If harvest was selected, maintain fever for the next wave
+                if (tacticalType === 'harvest') {
+                    isHyperFeverActive = true;
+                } else {
+                    isHyperFeverActive = false;
+                }
                 mistakesOnCurrentWave = 0;
 
                 sfx.explosion();
