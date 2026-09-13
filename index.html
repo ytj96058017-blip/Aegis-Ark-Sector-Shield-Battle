@@ -185,6 +185,9 @@
                 <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
                     <span id="my-team-badge" class="text-xs px-3.5 py-1.5 rounded-full font-bold">소속 기지</span>
                     <span id="my-role-badge" class="text-xs px-3.5 py-1.5 bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 rounded-full font-bold">내 포지션</span>
+                    <span id="heat-shield-badge" class="hidden text-xs px-3.5 py-1.5 bg-amber-500/20 text-yellow-300 border border-yellow-400 rounded-full font-bold animate-pulse">
+                        🛡️ 방열 실드 활성 (오답 1회 면제)
+                    </span>
                     <span id="threat-wave-badge" class="text-xs px-3.5 py-1.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full font-bold">
                         ☄️ 요격 위협: <span id="current-threat-name">메테오 폭격 #1</span>
                     </span>
@@ -714,16 +717,16 @@
         }
 
         window.joinTeam = async function(team) {
-            const name = document.getElementById('player-name').value.trim();
-            const code = document.getElementById('room-code').value.trim();
+            let name = document.getElementById('player-name').value.trim();
+            let code = document.getElementById('room-code').value.trim();
 
             if (!name) {
-                showCustomModal('입력 오류', '기하 방어관 닉네임을 입력해 주세요!');
-                return;
+                name = '대원_' + Math.floor(Math.random() * 900 + 100);
+                document.getElementById('player-name').value = name;
             }
             if (!code) {
-                showCustomModal('입력 오류', '배틀룸 코드를 입력해 주세요!');
-                return;
+                code = 'aegis101';
+                document.getElementById('room-code').value = code;
             }
 
             currentUserName = name;
@@ -762,7 +765,7 @@
                 }
             } catch (e) {}
 
-            const withTimeout = (p, ms = 2000) => Promise.race([
+            const withTimeout = (p, ms = 1500) => Promise.race([
                 p,
                 new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
             ]);
@@ -805,7 +808,11 @@
                 }
             }
 
-            applyRoomState(initialData, true);
+            try {
+                applyRoomState(initialData, true);
+            } catch (e) {
+                console.warn("State initialization warning:", e);
+            }
 
             document.getElementById('lobby-screen').classList.add('hidden');
             document.getElementById('battle-screen').classList.remove('hidden');
@@ -938,15 +945,19 @@
             }
 
             const angleHud = document.getElementById('arc-hud-angle');
-            angleHud.innerText = `중심각 ${currentMission.x}° (${currentMission.startAngle}° ~ ${currentMission.endAngle}°)`;
+            if (angleHud) {
+                angleHud.innerText = `중심각 ${currentMission.x}° (${currentMission.startAngle}° ~ ${currentMission.endAngle}°)`;
+            }
 
-            // 방열 실드(에너지 하베스트 오답 면제권) HUD 표시
+            // 방열 실드(에너지 하베스트 오답 면제권) HUD 표시 안전 검사
             const heatShieldBadge = document.getElementById('heat-shield-badge');
             const hasShield = team === 'blue' ? data.blueHeatShield : data.redHeatShield;
-            if (hasShield) {
-                heatShieldBadge.classList.remove('hidden');
-            } else {
-                heatShieldBadge.classList.add('hidden');
+            if (heatShieldBadge) {
+                if (hasShield) {
+                    heatShieldBadge.classList.remove('hidden');
+                } else {
+                    heatShieldBadge.classList.add('hidden');
+                }
             }
 
             const teamBadge = document.getElementById('my-team-badge');
