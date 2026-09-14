@@ -467,69 +467,92 @@
             sessionStorage.setItem('aegis_player_id', myPlayerId);
         }
 
-        // 클라우드 데이터베이스 초기 자동 진단
-        async function checkInitialDbStatus() {
-            const dotEl = document.getElementById('db-status-dot');
-            const textEl = document.getElementById('db-status-text');
-            if (!db) {
-                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-rose-500";
-                if (textEl) textEl.innerText = "초기화 실패 (네트워크 차단)";
-                return;
-            }
+        let heartbeatInterval = null;
 
-            try {
-                const pingRef = doc(db, 'aegis_arc_rooms', '_ping_check');
-                await setDoc(pingRef, { ping: Date.now() }, { merge: true });
-                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-emerald-400";
-                if (textEl) textEl.innerText = "🟢 클라우드 DB 연결 성공! (실시간 다중 접속 가능)";
-            } catch (err) {
-                console.warn("DB Ping Check Error:", err);
-                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-rose-500";
-                if (textEl) textEl.innerText = `🔴 연결 오류: ${err.message || err.code}`;
-            }
+        // 12초 이상 하트비트가 없는 오프라인/창 닫은 유령 유저 자동 제거 함수
+        function pruneGhostMembers(list = []) {
+            const now = Date.now();
+            return list.filter(m => {
+                if (!m) return false;
+                // 내가 방금 접속한 경우 내 객체는 유지
+                if (m.id === myPlayerId || m.name === currentUserName) return true;
+                const lastSeen = m.lastSeen || m.joinedAt || 0;
+                return (now - lastSeen) < 14000; // 14초 이상 생존 신호 없으면 유령으로 간주하고 삭제!
+            });
         }
 
-        window.testDirectDatabaseWrite = async function() {
-            const dotEl = document.getElementById('db-status-dot');
-            const textEl = document.getElementById('db-status-text');
-            if (textEl) textEl.innerText = "테스트 데이터 전송 중...";
+        // 고유 ID 및 닉네임 기반으로 엄격하게 중복을 제거하고 생존 유저만 남기는 멤버 정규화 함수
+        function normalizeMembers(list = []) {
+            const activeList = pruneGhostMembers(list);
+            const map = new Map();
+            activeList.forEach(item => {
+                if (!item) return;
+                const id = item.id || (typeof item === 'string' ? item : item.name);
+                const name = item.name || item;
+                const joinedAt = item.joinedAt || Date.now();
+                const lastSeen = item.lastSeen || Date.now();
+                if (!map.has(id)) {
+                    map.set(id, { id: id, name: name, joinedAt: joinedAt, lastSeen: lastSeen });
+                }
+            });
+            return Array.from(map.values()).sort((a, b) => a.joinedAt - b.joinedAt);
+        }
 
-            try {
-                const testRef = doc(db, 'aegis_arc_rooms', 'test_room');
-                await setDoc(testRef, {
-                    message: "파이어베이스 연결 성공!",
-                    testedAt: new Date().toLocaleTimeString(),
-                    timestamp: Date.now()
-                });
-                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-emerald-400";
-                if (textEl) textEl.innerText = "🟢 전송 성공! (파이어베이스 콘솔에 test_room 생성됨!)";
-                showCustomModal("통신 성공", "파이어베이스 콘솔에 'aegis_arc_rooms' 폴더와 'test_room'이 성공적으로 생성되었습니다!");
-            } catch (err) {
-                console.error("Test write failed:", err);
-                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-rose-500";
-                if (textEl) textEl.innerText = `🔴 전송 실패: ${err.message}`;
-            }
-        };
+        // 4초마다 내 생존 신호(Heartbeat)를 서버에 보내는 함수
+        function startHeartbeatLoop() {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(async () => {
+                if (!db || !currentRoomCode || !myPlayerId || !lastKnownRoomData) return;
+                try {
+                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
+                    const snap = await getDoc(roomRef);
+                    if (!snap.exists()) return;
+                    const data = snap.data();
 
-        // 방 인원 및 게임 데이터 리셋 함수
+                    const touch = (list = []) => list.map(m => {
+                        if (m.id === myPlayerId || m.name === currentUserName) {
+                            return { ...m, lastSeen: Date.now() };
+                        }
+                        return m;
+                    });
+
+                    const bluePruned = normalizeMembers(touch(data.blueMembers || []));
+                    const redPruned = normalizeMembers(touch(data.redMembers || []));
+
+                    // 인원 변동 또는 생존 신호 갱신
+                    await updateDoc(roomRef, {
+                        blueMembers: bluePruned,
+                        redMembers: redPruned,
+                        updatedAt: Date.now()
+                    });
+                } catch (e) {}
+            }, 4000);
+        }
+
+        // 방 인원 및 게임 데이터 즉시 강제 리셋 함수 (유령 대원 싹 청소)
         window.resetCurrentRoomData = async function() {
-            let code = document.getElementById('room-code').value.trim() || 'aegis101';
-            if (!confirm(`배틀룸 [${code}]의 모든 대원 명단과 게임 상태를 초기화하시겠습니까?`)) return;
-
+            let code = currentRoomCode || document.getElementById('room-code').value.trim() || 'aegis101';
+            
             const cleanData = createInitialRoomData();
+            if (currentUserName && myPlayerId && myTeam) {
+                // 현재 누른 사람만 1번 대원으로 남겨두기
+                const me = { id: myPlayerId, name: currentUserName, joinedAt: Date.now(), lastSeen: Date.now() };
+                if (myTeam === 'blue') cleanData.blueMembers = [me];
+                else cleanData.redMembers = [me];
+            }
+
+            applyRoomState(cleanData, true);
+
             if (db) {
                 try {
                     const roomRef = doc(db, 'aegis_arc_rooms', code);
                     await setDoc(roomRef, cleanData);
-                    showCustomModal("초기화 완료", `배틀룸 [${code}]의 인원 및 상태가 깨끗하게 초기화되었습니다.`);
+                    showCustomModal("초기화 완료", `배틀룸 [${code}]의 모든 유령 대원이 제거되었습니다!`);
                 } catch (e) {
                     alert("초기화 실패: " + e.message);
                 }
             }
         };
-
-        // 로비 진입 시 0.4초 후 초기 핑 검사 실행
-        setTimeout(checkInitialDbStatus, 400);
 
         let currentUserName = '';
         let currentRoomCode = '';
@@ -781,7 +804,7 @@
             currentRoomCode = code;
             myTeam = team;
 
-            const myMemberObj = { id: myPlayerId, name: currentUserName, joinedAt: Date.now() };
+            const myMemberObj = { id: myPlayerId, name: currentUserName, joinedAt: Date.now(), lastSeen: Date.now() };
             document.getElementById('lobby-status').innerText = "클라우드 전술망에 접속 중입니다...";
 
             // 동일 PC 내 빠른 동기화를 위한 보조 BroadcastChannel
@@ -807,10 +830,10 @@
 
                     let roomData = snap.exists() ? snap.data() : createInitialRoomData();
 
-                    // 다른 팀에 혹시 등록되어 있었다면 제거하고 현재 팀에 단일 등록
+                    // 다른 팀에 혹시 등록되어 있었다면 제거하고 현재 팀에 단일 등록 + 유령 대원(오프라인) 제거
                     const filterOutMe = (list = []) => list.filter(m => (m.id !== myPlayerId && m.name !== currentUserName));
-                    roomData.blueMembers = filterOutMe(roomData.blueMembers);
-                    roomData.redMembers = filterOutMe(roomData.redMembers);
+                    roomData.blueMembers = normalizeMembers(filterOutMe(roomData.blueMembers));
+                    roomData.redMembers = normalizeMembers(filterOutMe(roomData.redMembers));
 
                     if (team === 'blue') {
                         roomData.blueMembers.push(myMemberObj);
@@ -825,6 +848,7 @@
                     await setDoc(roomRef, roomData, { merge: true });
                     applyRoomState(roomData, true);
                     startFirestoreListener(roomRef);
+                    startHeartbeatLoop();
                 } catch (err) {
                     console.error("Firestore 접속 오류:", err);
                     alert("서버 연결 실패: " + err.message);
@@ -845,11 +869,12 @@
 
         // 창을 닫거나 새로고침 시 방에서 본인을 자동으로 깔끔하게 제거
         window.addEventListener('beforeunload', () => {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
             if (db && currentRoomCode && myPlayerId && lastKnownRoomData) {
                 try {
                     const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
                     const updated = { ...lastKnownRoomData };
-                    const filterOutMe = (list = []) => (list || []).filter(m => m.id !== myPlayerId);
+                    const filterOutMe = (list = []) => (list || []).filter(m => m.id !== myPlayerId && m.name !== currentUserName);
                     updated.blueMembers = filterOutMe(updated.blueMembers);
                     updated.redMembers = filterOutMe(updated.redMembers);
                     updated.updatedAt = Date.now();
