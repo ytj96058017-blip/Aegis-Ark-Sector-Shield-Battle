@@ -439,7 +439,7 @@
     <!-- Main Game Logic and Firebase Synchronizer -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { initializeFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChxrOzoTxFMy_BvkvNZLXAp1oRvN7Fb1g",
@@ -454,13 +454,17 @@
         let db = null;
         try {
             const app = initializeApp(firebaseConfig);
-            // 학교망/방화벽 차단을 우회하기 위한 강제 롱폴링(Long-Polling) 소켓 설정
-            db = initializeFirestore(app, {
-                experimentalForceLongPolling: true
-            });
-            console.log("Firestore 초기화 완료 (Long Polling 활성화)");
+            db = getFirestore(app);
+            console.log("Firestore 표준 초기화 완료");
         } catch (e) {
             console.error("Firebase init error:", e);
+        }
+
+        // 고유 브라우저 세션 ID 발급 (새로고침 시 중복 대원 생성 방지)
+        let myPlayerId = sessionStorage.getItem('aegis_player_id');
+        if (!myPlayerId) {
+            myPlayerId = 'p_' + Math.random().toString(36).substring(2, 9);
+            sessionStorage.setItem('aegis_player_id', myPlayerId);
         }
 
         // 클라우드 데이터베이스 초기 자동 진단
@@ -477,11 +481,11 @@
                 const pingRef = doc(db, 'aegis_arc_rooms', '_ping_check');
                 await setDoc(pingRef, { ping: Date.now() }, { merge: true });
                 if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-emerald-400";
-                if (textEl) textEl.innerText = "🟢 정상 연결됨 (Firestore 실시간 동기화 준비 완료)";
+                if (textEl) textEl.innerText = "🟢 클라우드 DB 연결 성공! (실시간 다중 접속 가능)";
             } catch (err) {
                 console.warn("DB Ping Check Error:", err);
                 if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-rose-500";
-                if (textEl) textEl.innerText = `🔴 연결 실패: ${err.code || err.message}`;
+                if (textEl) textEl.innerText = `🔴 연결 오류: ${err.message || err.code}`;
             }
         }
 
@@ -499,7 +503,7 @@
                 });
                 if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-emerald-400";
                 if (textEl) textEl.innerText = "🟢 전송 성공! (파이어베이스 콘솔에 test_room 생성됨!)";
-                showStepFeedback("🎉 [클라우드 DB 전송 성공!] 파이어베이스 콘솔을 새로고침해 보세요!", false);
+                showCustomModal("통신 성공", "파이어베이스 콘솔에 'aegis_arc_rooms' 폴더와 'test_room'이 성공적으로 생성되었습니다!");
             } catch (err) {
                 console.error("Test write failed:", err);
                 if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-rose-500";
@@ -507,8 +511,25 @@
             }
         };
 
-        // 로비 진입 시 0.5초 후 초기 핑 검사 실행
-        setTimeout(checkInitialDbStatus, 500);
+        // 방 인원 및 게임 데이터 리셋 함수
+        window.resetCurrentRoomData = async function() {
+            let code = document.getElementById('room-code').value.trim() || 'aegis101';
+            if (!confirm(`배틀룸 [${code}]의 모든 대원 명단과 게임 상태를 초기화하시겠습니까?`)) return;
+
+            const cleanData = createInitialRoomData();
+            if (db) {
+                try {
+                    const roomRef = doc(db, 'aegis_arc_rooms', code);
+                    await setDoc(roomRef, cleanData);
+                    showCustomModal("초기화 완료", `배틀룸 [${code}]의 인원 및 상태가 깨끗하게 초기화되었습니다.`);
+                } catch (e) {
+                    alert("초기화 실패: " + e.message);
+                }
+            }
+        };
+
+        // 로비 진입 시 0.4초 후 초기 핑 검사 실행
+        setTimeout(checkInitialDbStatus, 400);
 
         let currentUserName = '';
         let currentRoomCode = '';
@@ -550,28 +571,27 @@
             let attempts = 0;
 
             const candidates = [
-                // (r, x): rx/180 is integer, r^2 * x / 360 is integer
-                { r: 6, x: 60 },   // l = 2π, S = 6π
-                { r: 6, x: 120 },  // l = 4π, S = 12π
-                { r: 6, x: 240 },  // l = 8π, S = 24π
-                { r: 8, x: 45 },   // l = 2π, S = 8π
-                { r: 8, x: 90 },   // l = 4π, S = 16π
-                { r: 8, x: 135 },  // l = 6π, S = 24π
-                { r: 9, x: 120 },  // l = 6π, S = 27π
-                { r: 10, x: 72 },  // l = 4π, S = 20π
-                { r: 10, x: 144 }, // l = 8π, S = 40π
-                { r: 12, x: 30 },  // l = 2π, S = 12π
-                { r: 12, x: 60 },  // l = 4π, S = 24π
-                { r: 12, x: 90 },  // l = 6π, S = 36π
-                { r: 12, x: 150 }, // l = 10π, S = 60π
-                { r: 15, x: 120 }, // l = 10π, S = 75π
-                { r: 4, x: 90 },   // l = 2π, S = 4π
-                { r: 4, x: 180 },  // l = 4π, S = 8π
-                { r: 5, x: 144 },  // l = 4π, S = 10π
-                { r: 18, x: 40 },  // l = 4π, S = 36π
-                { r: 18, x: 80 },  // l = 8π, S = 72π
-                { r: 16, x: 45 },  // l = 4π, S = 32π
-                { r: 16, x: 90 }   // l = 8π, S = 64π
+                { r: 6, x: 60 },
+                { r: 6, x: 120 },
+                { r: 6, x: 240 },
+                { r: 8, x: 45 },
+                { r: 8, x: 90 },
+                { r: 8, x: 135 },
+                { r: 9, x: 120 },
+                { r: 10, x: 72 },
+                { r: 10, x: 144 },
+                { r: 12, x: 30 },
+                { r: 12, x: 60 },
+                { r: 12, x: 90 },
+                { r: 12, x: 150 },
+                { r: 15, x: 120 },
+                { r: 4, x: 90 },
+                { r: 4, x: 180 },
+                { r: 5, x: 144 },
+                { r: 18, x: 40 },
+                { r: 18, x: 80 },
+                { r: 16, x: 45 },
+                { r: 16, x: 90 }
             ];
 
             while (attempts < 100) {
@@ -579,10 +599,8 @@
                 const item = candidates[Math.floor(Math.random() * candidates.length)];
                 const r = item.r;
                 const x = item.x;
-                const arcCoef = (r * x) / 180; // coefficient of π for arc
-                const areaCoef = (r * r * x) / 360; // coefficient of π for area
-
-                // Start angle for visual variety on radar (0° to 330°)
+                const arcCoef = (r * x) / 180;
+                const areaCoef = (r * r * x) / 360;
                 const startAngle = (Math.floor(Math.random() * 12) * 30) % 360;
 
                 const problemKey = `${r}_${x}_${startAngle}`;
@@ -593,7 +611,6 @@
                         recentProblemsSet.delete(first);
                     }
 
-                    // Clue styles
                     let step0Clue = "";
                     const clueType = Math.floor(Math.random() * 3);
                     if (clueType === 0) {
@@ -640,17 +657,14 @@
             return mission;
         }
 
-        // 5-second lockout cooldown penalty
         function triggerLockoutPenalty() {
             if (isLockedOut) return;
             
-            // 에너지 하베스트로 획득한 방열 실드(오답 1회 면제권) 보유 여부 검사
             const team = myTeam;
             const data = lastKnownRoomData;
             const hasHeatShield = team === 'blue' ? data?.blueHeatShield : data?.redHeatShield;
 
             if (hasHeatShield) {
-                // 방열 실드 소모 및 5초 잠금 면제 발동!
                 sfx.shieldDeploy();
                 showStepFeedback("🛡️ [방열 실드 발동!] 에너지 하베스트 보호막이 작동하여 5초 잠금을 1회 면제했습니다! 다시 계산하세요!", false);
                 const nextData = { ...data };
@@ -690,20 +704,19 @@
             }, 100);
         }
 
-        function mergeMembers(listA = [], listB = []) {
+        // 고유 ID 및 닉네임 기반으로 엄격하게 중복을 제거하는 멤버 정규화 함수
+        function normalizeMembers(list = []) {
             const map = new Map();
-            [...listA, ...listB].forEach(item => {
+            list.forEach(item => {
                 if (!item) return;
-                const obj = typeof item === 'string' 
-                    ? { name: item, joinedAt: Date.now() } 
-                    : { name: item.name, joinedAt: item.joinedAt || Date.now() };
-                if (!map.has(obj.name) || map.get(obj.name).joinedAt > obj.joinedAt) {
-                    map.set(obj.name, obj);
+                const id = item.id || (typeof item === 'string' ? item : item.name);
+                const name = item.name || item;
+                const joinedAt = item.joinedAt || Date.now();
+                if (!map.has(id)) {
+                    map.set(id, { id: id, name: name, joinedAt: joinedAt });
                 }
             });
-            return Array.from(map.values()).sort((a, b) => 
-                a.joinedAt !== b.joinedAt ? a.joinedAt - b.joinedAt : a.name.localeCompare(b.name)
-            );
+            return Array.from(map.values()).sort((a, b) => a.joinedAt - b.joinedAt);
         }
 
         function getStageActorIndex(stage, teamSize, problemCount = 1) {
@@ -768,9 +781,10 @@
             currentRoomCode = code;
             myTeam = team;
 
-            const myMemberObj = { name: currentUserName, joinedAt: Date.now() };
-            document.getElementById('lobby-status').innerText = "클라우드 서버에 접속 중입니다...";
+            const myMemberObj = { id: myPlayerId, name: currentUserName, joinedAt: Date.now() };
+            document.getElementById('lobby-status').innerText = "클라우드 전술망에 접속 중입니다...";
 
+            // 동일 PC 내 빠른 동기화를 위한 보조 BroadcastChannel
             try {
                 if (window.BroadcastChannel) {
                     if (bc) bc.close();
@@ -780,69 +794,46 @@
                         if (!msg) return;
                         if (msg.type === 'SYNC_STATE') {
                             applyRoomState(msg.payload, false);
-                        } else if (msg.type === 'REQUEST_STATE') {
-                            if (lastKnownRoomData) {
-                                bc.postMessage({ type: 'SYNC_STATE', payload: lastKnownRoomData });
-                            }
-                        } else if (msg.type === 'MEMBER_JOIN') {
-                            if (lastKnownRoomData) {
-                                const updated = { ...lastKnownRoomData };
-                                if (msg.team === 'blue') {
-                                    updated.blueMembers = mergeMembers(updated.blueMembers, [msg.member]);
-                                } else {
-                                    updated.redMembers = mergeMembers(updated.redMembers, [msg.member]);
-                                }
-                                updated.updatedAt = Date.now();
-                                applyRoomState(updated, true);
-                            }
                         }
                     };
                 }
             } catch (e) {}
 
-            let initialData = null;
-
-            // Firestore 다이렉트 연동 (최상위 컬렉션 aegis_arc_rooms 사용)
+            // Firestore 연동 및 실시간 리스너 시작
             if (db) {
                 try {
                     const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
                     const snap = await getDoc(roomRef);
 
-                    if (snap.exists()) {
-                        initialData = snap.data();
-                    } else {
-                        initialData = createInitialRoomData();
-                    }
+                    let roomData = snap.exists() ? snap.data() : createInitialRoomData();
+
+                    // 다른 팀에 혹시 등록되어 있었다면 제거하고 현재 팀에 단일 등록
+                    const filterOutMe = (list = []) => list.filter(m => (m.id !== myPlayerId && m.name !== currentUserName));
+                    roomData.blueMembers = filterOutMe(roomData.blueMembers);
+                    roomData.redMembers = filterOutMe(roomData.redMembers);
 
                     if (team === 'blue') {
-                        initialData.blueMembers = mergeMembers(initialData.blueMembers, [myMemberObj]);
+                        roomData.blueMembers.push(myMemberObj);
                     } else {
-                        initialData.redMembers = mergeMembers(initialData.redMembers, [myMemberObj]);
+                        roomData.redMembers.push(myMemberObj);
                     }
 
-                    initialData.updatedAt = Date.now();
-                    await setDoc(roomRef, initialData, { merge: true });
+                    roomData.blueMembers = normalizeMembers(roomData.blueMembers);
+                    roomData.redMembers = normalizeMembers(roomData.redMembers);
+                    roomData.updatedAt = Date.now();
+
+                    await setDoc(roomRef, roomData, { merge: true });
+                    applyRoomState(roomData, true);
                     startFirestoreListener(roomRef);
                 } catch (err) {
                     console.error("Firestore 접속 오류:", err);
+                    alert("서버 연결 실패: " + err.message);
                 }
-            }
-
-            if (!initialData) {
-                initialData = createInitialRoomData();
-                if (team === 'blue') initialData.blueMembers = [myMemberObj];
-                else initialData.redMembers = [myMemberObj];
-
-                if (bc) {
-                    bc.postMessage({ type: 'REQUEST_STATE' });
-                    bc.postMessage({ type: 'MEMBER_JOIN', member: myMemberObj, team: myTeam });
-                }
-            }
-
-            try {
-                applyRoomState(initialData, true);
-            } catch (e) {
-                console.warn("State initialization warning:", e);
+            } else {
+                const localData = createInitialRoomData();
+                if (team === 'blue') localData.blueMembers = [myMemberObj];
+                else localData.redMembers = [myMemberObj];
+                applyRoomState(localData, true);
             }
 
             document.getElementById('lobby-screen').classList.add('hidden');
@@ -851,6 +842,21 @@
             initArcCanvas();
             sfx.shieldDeploy();
         };
+
+        // 창을 닫거나 새로고침 시 방에서 본인을 자동으로 깔끔하게 제거
+        window.addEventListener('beforeunload', () => {
+            if (db && currentRoomCode && myPlayerId && lastKnownRoomData) {
+                try {
+                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
+                    const updated = { ...lastKnownRoomData };
+                    const filterOutMe = (list = []) => (list || []).filter(m => m.id !== myPlayerId);
+                    updated.blueMembers = filterOutMe(updated.blueMembers);
+                    updated.redMembers = filterOutMe(updated.redMembers);
+                    updated.updatedAt = Date.now();
+                    updateDoc(roomRef, updated);
+                } catch (e) {}
+            }
+        });
 
         function startFirestoreListener(roomRef) {
             if (unsubscribeRoom) unsubscribeRoom();
@@ -862,16 +868,13 @@
             });
         }
 
+        // Firestore 서버 데이터를 '단 하나의 진실의 원천'으로 신뢰하여 화면에 반영
         function applyRoomState(data, broadcastEcho = false) {
             if (!data) return;
 
-            if (lastKnownRoomData) {
-                data.blueMembers = mergeMembers(lastKnownRoomData.blueMembers, data.blueMembers);
-                data.redMembers = mergeMembers(lastKnownRoomData.redMembers, data.redMembers);
-            } else {
-                data.blueMembers = mergeMembers([], data.blueMembers);
-                data.redMembers = mergeMembers([], data.redMembers);
-            }
+            // 로컬 데이터와 누적 merge하던 버그를 제거하고 서버의 정규화된 목록을 그대로 채택!
+            data.blueMembers = normalizeMembers(data.blueMembers || []);
+            data.redMembers = normalizeMembers(data.redMembers || []);
 
             lastKnownRoomData = data;
 
@@ -902,10 +905,10 @@
 
             updateDefenseHUD(data.blueDefense, data.redDefense);
 
-            const bMembers = (data.blueMembers || []).map(m => m.name || m);
-            const rMembers = (data.redMembers || []).map(m => m.name || m);
-            document.getElementById('blue-members').innerText = `대원(${bMembers.length}명): ${bMembers.join(', ') || '대기 중'}`;
-            document.getElementById('red-members').innerText = `대원(${rMembers.length}명): ${rMembers.join(', ') || '대기 중'}`;
+            const bNames = (data.blueMembers || []).map(m => m.name || m);
+            const rNames = (data.redMembers || []).map(m => m.name || m);
+            document.getElementById('blue-members').innerText = `대원(${bNames.length}명): ${bNames.join(', ') || '대기 중'}`;
+            document.getElementById('red-members').innerText = `대원(${rNames.length}명): ${rNames.join(', ') || '대기 중'}`;
 
             updatePipelineUI(data);
 
@@ -956,8 +959,7 @@
 
         function updatePipelineUI(data) {
             const team = myTeam;
-            const myRawMembers = team === 'blue' ? (data.blueMembers || []) : (data.redMembers || []);
-            const myMembers = mergeMembers([], myRawMembers);
+            const myMembers = team === 'blue' ? (data.blueMembers || []) : (data.redMembers || []);
             const currentStage = team === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
             const currentMission = team === 'blue' ? data.blueMission : data.redMission;
             const problemCount = team === 'blue' ? (data.blueProblemCount || 1) : (data.redProblemCount || 1);
@@ -982,7 +984,6 @@
                 angleHud.innerText = `중심각 ${currentMission.x}° (${currentMission.startAngle}° ~ ${currentMission.endAngle}°)`;
             }
 
-            // 방열 실드(에너지 하베스트 오답 면제권) HUD 표시 안전 검사
             const heatShieldBadge = document.getElementById('heat-shield-badge');
             const hasShield = team === 'blue' ? data.blueHeatShield : data.redHeatShield;
             if (heatShieldBadge) {
@@ -1003,7 +1004,7 @@
             }
 
             const teamSize = Math.max(1, myMembers.length);
-            const myIndex = myMembers.findIndex(m => m.name === currentUserName);
+            const myIndex = myMembers.findIndex(m => m.id === myPlayerId || m.name === currentUserName);
             const activeMemberIndex = getStageActorIndex(currentStage, teamSize, problemCount);
             const activeMemberObj = myMembers[activeMemberIndex];
             const activeMemberName = activeMemberObj ? activeMemberObj.name : `${activeMemberIndex + 1}번 대원`;
@@ -1061,7 +1062,6 @@
                 } else {
                     numControls.classList.add('hidden');
                     deployControls.classList.remove('hidden');
-                    // 4단계 진입 시 모달 1회 자동 팝업 (사용자가 직접 선택하도록 유도)
                     if (!window.tacticalModalAutoOpened) {
                         window.tacticalModalAutoOpened = true;
                         openTacticalModal();
