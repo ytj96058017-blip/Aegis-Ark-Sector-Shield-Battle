@@ -439,8 +439,7 @@
     <!-- Main Game Logic and Firebase Synchronizer -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChxrOzoTxFMy_BvkvNZLXAp1oRvN7Fb1g",
@@ -453,19 +452,13 @@
         };
 
         let db = null;
-        let auth = null;
-        let useFallback = false;
-
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            auth = getAuth(app);
         } catch (e) {
-            useFallback = true;
+            console.error("Firebase init error:", e);
         }
 
-        // Dedicated Firebase collection path for Aegis Arc
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'aegis-arc-default';
         let currentUserName = '';
         let currentRoomCode = '';
         let myTeam = '';
@@ -501,15 +494,6 @@
             }
         };
 
-        /*
-          Procedural Sector Math Generator (Middle School Grade 1, 2nd Semester Geometry)
-          Formulas:
-          - Central Angle: x°
-          - Arc Length: l = 2πr * (x/360) = π * (rx / 180)
-            Students enter the coefficient of π!
-          - Area: S = πr² * (x/360) = 1/2 * l * r
-            Students enter the coefficient of π!
-        */
         function generateSectorMission(waveIndex = 1) {
             let mission = null;
             let attempts = 0;
@@ -734,7 +718,7 @@
             myTeam = team;
 
             const myMemberObj = { name: currentUserName, joinedAt: Date.now() };
-            document.getElementById('lobby-status').innerText = "클라우드 서버에 접속 중입니다... (최초 연결 시 3~5초 소요)";
+            document.getElementById('lobby-status').innerText = "클라우드 서버에 접속 중입니다...";
 
             try {
                 if (window.BroadcastChannel) {
@@ -761,31 +745,17 @@
                                 applyRoomState(updated, true);
                             }
                         }
-                    }
+                    };
                 }
             } catch (e) {}
 
-            // 파이어베이스 최초 인증 완료까지 대기 (권한 획득)
-            try {
-                if (auth && !auth.currentUser) {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) {
-                useFallback = true;
-            }
-
-            // 서로 다른 기기 접속 시 최초 통신 지연을 대비해 타임아웃을 1.5초에서 5초로 연장
-            const withTimeout = (p, ms = 5000) => Promise.race([
-                p,
-                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
-            ]);
-
             let initialData = null;
 
-            try {
-                if (!useFallback && db) {
-                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
-                    const snap = await withTimeout(getDoc(roomRef));
+            // Firestore 다이렉트 연동 (최상위 컬렉션 aegis_arc_rooms 사용)
+            if (db) {
+                try {
+                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
+                    const snap = await getDoc(roomRef);
 
                     if (snap.exists()) {
                         initialData = snap.data();
@@ -800,11 +770,11 @@
                     }
 
                     initialData.updatedAt = Date.now();
-                    await withTimeout(setDoc(roomRef, initialData, { merge: true }));
+                    await setDoc(roomRef, initialData, { merge: true });
                     startFirestoreListener(roomRef);
+                } catch (err) {
+                    console.error("Firestore 접속 오류:", err);
                 }
-            } catch (err) {
-                useFallback = true;
             }
 
             if (!initialData) {
@@ -836,7 +806,9 @@
             unsubscribeRoom = onSnapshot(roomRef, (snap) => {
                 if (!snap.exists()) return;
                 applyRoomState(snap.data(), false);
-            }, () => { useFallback = true; });
+            }, (err) => {
+                console.error("Firestore Listener error:", err);
+            });
         }
 
         function applyRoomState(data, broadcastEcho = false) {
@@ -901,12 +873,12 @@
 
         async function syncStateUpdate(nextData) {
             applyRoomState(nextData, true);
-            if (!useFallback && db) {
+            if (db) {
                 try {
-                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
+                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
                     await updateDoc(roomRef, nextData);
                 } catch (e) {
-                    useFallback = true;
+                    console.error("Firestore update error:", e);
                 }
             }
         }
