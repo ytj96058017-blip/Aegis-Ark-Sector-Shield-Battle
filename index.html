@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>에이지스 아크: 부채꼴 방어막 배틀 - 중1 수학 실시간 기하 협동전</title>
+    <title>에이지스 아크: 부채꼴 방어막 배틀 - 중1 수학 실시간 4인 협동 아케이드</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -11,73 +11,71 @@
     <style>
         body { font-family: 'Jua', 'Inter', sans-serif; }
         .font-arc { font-family: 'Black Han Sans', sans-serif; }
-        .cyber-space-bg {
-            background: radial-gradient(circle at 50% 20%, #081b29 0%, #030a10 60%, #010408 100%);
+        .space-bg {
+            background: radial-gradient(circle at 50% 20%, #030712 0%, #020617 65%, #000000 100%);
         }
-        .arc-shield-glow {
+        .shield-pulse {
             animation: shieldPulse 2.2s infinite ease-in-out;
         }
         @keyframes shieldPulse {
-            0%, 100% { box-shadow: 0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(56, 189, 248, 0.2); }
-            50% { box-shadow: 0 0 38px rgba(56, 189, 248, 0.85), inset 0 0 22px rgba(56, 189, 248, 0.45); }
+            0%, 100% { box-shadow: 0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 12px rgba(56, 189, 248, 0.2); }
+            50% { box-shadow: 0 0 42px rgba(56, 189, 248, 0.9), inset 0 0 24px rgba(56, 189, 248, 0.45); }
         }
-        .overheat-siren {
-            animation: overheatAlert 0.75s infinite alternate;
+        .danger-siren {
+            animation: dangerAlert 0.75s infinite alternate;
         }
-        @keyframes overheatAlert {
+        @keyframes dangerAlert {
             from { border-color: #ef4444; background-color: rgba(239, 68, 68, 0.25); }
             to { border-color: #f59e0b; background-color: rgba(245, 158, 11, 0.35); }
         }
-        @keyframes coreSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        @keyframes floatAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
-        .core-rotate {
-            animation: coreSpin 20s linear infinite;
+        .float-icon {
+            animation: floatAnim 2.8s infinite ease-in-out;
         }
         .dust-overlay {
-            background: repeating-radial-gradient(circle, rgba(88, 28, 135, 0.92), rgba(15, 23, 42, 0.96) 12px);
-            backdrop-filter: blur(12px);
+            background: repeating-radial-gradient(circle, rgba(147, 51, 234, 0.92), rgba(88, 28, 135, 0.96) 14px);
+            backdrop-filter: blur(14px);
         }
     </style>
 </head>
-<body class="cyber-space-bg text-white min-h-screen flex flex-col justify-between p-3 md:p-6 select-none">
+<body class="space-bg text-white min-h-screen flex flex-col justify-between p-3 md:p-6 select-none">
 
-    <!-- Header Banner -->
     <header class="text-center mb-3">
         <div class="flex items-center justify-center gap-3">
-            <span class="text-3xl md:text-5xl">🛡️</span>
-            <h1 class="text-3xl md:text-5xl font-arc tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-300 to-indigo-400 drop-shadow-lg">
+            <span class="text-3xl md:text-5xl float-icon">🛡️</span>
+            <h1 class="text-3xl md:text-5xl font-arc tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-teal-200 to-sky-400 drop-shadow-lg">
                 에이지스 아크: 부채꼴 방어막 배틀
             </h1>
-            <span class="text-3xl md:text-5xl">⚡</span>
+            <span class="text-3xl md:text-5xl float-icon">🚀</span>
         </div>
-        <p class="text-xs md:text-sm text-cyan-200 mt-1">
-            중학교 1학년 2학기 기하 [원과 부채꼴·중심각·호의 길이·넓이] 4인 협동 실시간 방어막 & 카운터 포격전
+        <p class="text-xs md:text-sm text-teal-200 mt-1">
+            중학교 1학년 원과 부채꼴(중심각·호의 길이·넓이) 4인 협동 실시간 아케이드 디펜스 배틀
         </p>
     </header>
 
-    <!-- Main Workspace Container -->
     <main class="max-w-5xl w-full mx-auto flex-1 flex flex-col justify-center">
 
         <!-- 1. Lobby Screen -->
         <div id="lobby-screen" class="bg-slate-900/90 border-2 border-cyan-500/60 rounded-3xl p-6 md:p-10 shadow-2xl backdrop-blur-xl">
             <div class="text-center mb-8">
                 <div class="inline-block px-4 py-1.5 rounded-full bg-cyan-950 border border-cyan-400/50 text-cyan-300 text-xs font-bold mb-2">
-                    🛰️ 에이지스 사령부 코어
+                    🪐 부채꼴 사령부 작전 본부
                 </div>
-                <h2 class="text-2xl md:text-3xl font-arc text-cyan-300 mb-2">방어 기지 배틀룸 참전 등록</h2>
+                <h2 class="text-2xl md:text-3xl font-arc text-cyan-300 mb-2">코어 디펜스룸 참전 등록</h2>
                 <p class="text-xs md:text-sm text-slate-300">
-                    같은 배틀룸 코드를 입력한 친구들과 청군(블루 아크) / 홍군(레드 이지스) 기지를 결성하여 5개의 메테오 웨이브를 먼저 방어하고 적 코어를 격파하세요!
+                    같은 배틀룸 코드를 입력한 친구들과 청군(블루 아크) 또는 홍군(레드 아크) 팀을 이뤄 메테오 공격을 방어하세요!
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                 <div class="bg-slate-950/80 p-5 rounded-2xl border border-slate-700">
                     <label class="block text-sm font-semibold mb-2 text-cyan-300 flex items-center gap-2">
-                        <span>👤</span> 기하 방어관 닉네임
+                        <span>👤</span> 아크 항해관 닉네임
                     </label>
-                    <input type="text" id="player-name" placeholder="예: 부채꼴수호자 예준" maxlength="10"
+                    <input type="text" id="player-name" placeholder="예: 방어관 서진" maxlength="10"
                            class="w-full px-4 py-3 rounded-xl bg-slate-900 border-2 border-slate-700 text-white font-bold text-lg focus:outline-none focus:border-cyan-400">
                 </div>
                 <div class="bg-slate-950/80 p-5 rounded-2xl border border-slate-700">
@@ -97,27 +95,45 @@
                 </button>
                 <button onclick="joinTeam('red')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 transition-all duration-200 shadow-xl border-2 border-rose-400 flex items-center justify-center gap-3 transform hover:-translate-y-1">
                     <span class="text-3xl">🔴</span>
-                    <span>홍군 코어 (레드 이지스) 기동</span>
+                    <span>홍군 코어 (레드 아크) 기동</span>
+                </button>
+            </div>
+
+            <!-- Lobby Ghost Reset Button -->
+            <div class="flex justify-center mb-4">
+                <button onclick="resetCurrentRoomData()" class="px-4 py-2 bg-rose-950/90 hover:bg-rose-900 border border-rose-500/70 rounded-xl text-xs text-rose-300 font-bold transition flex items-center gap-2 shadow">
+                    <span>🧹</span><span>로비 대원 명단 초기화 (유령 정리)</span>
                 </button>
             </div>
 
             <div id="lobby-status" class="text-center text-sm text-cyan-300 font-bold min-h-[24px]">
-                기지를 선택하면 부채꼴 에너지 코어를 동기화하고 방어 구역으로 진입합니다!
+                팀을 선택하면 사령부 메테오 디펜스 스테이지로 즉시 진입합니다!
+            </div>
+            
+            <div class="mt-6 text-center text-xs text-teal-400 font-bold">
+                🔥 클라우드 DB 연결 상태: <span id="db-status-badge">확인 중...</span>
             </div>
         </div>
 
         <!-- 2. Battle Screen -->
         <div id="battle-screen" class="hidden flex flex-col gap-4">
             
+            <!-- Quick Reset Bar for Ghost Cleanup -->
+            <div class="flex justify-end">
+                <button onclick="resetCurrentRoomData()" class="px-3.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/60 rounded-xl text-xs text-rose-300 font-bold transition active:scale-95 shadow flex items-center gap-1.5">
+                    <span>🧹</span><span>유령 대원 명단 초기화 (0명 리셋)</span>
+                </button>
+            </div>
+
             <!-- Fleet Status HUD: 5 Waves/Cores Per Team -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/90 p-4 rounded-3xl border border-slate-700 shadow-xl">
                 <!-- Blue Core -->
                 <div class="flex flex-col gap-2 p-3.5 rounded-2xl bg-cyan-950/50 border-2 border-cyan-500/50">
                     <div class="flex justify-between items-center text-sm font-bold">
                         <span class="text-cyan-300 font-arc text-base md:text-lg flex items-center gap-2">
-                            <span>🔵</span> 블루 아크 코어 (방어 완료: <span id="blue-defense-count">0</span>/5회)
+                            <span>🔵</span> 블루 아크 코어 (방어 완료: <span id="blue-score">0</span> / 5회)
                         </span>
-                        <div id="blue-defense-icons" class="flex items-center gap-1.5 text-xl">
+                        <div id="blue-shields-icons" class="flex items-center gap-1.5 text-xl">
                             <span>🛡️</span><span>🛡️</span><span>🛡️</span><span>🛡️</span><span>🛡️</span>
                         </div>
                     </div>
@@ -128,9 +144,9 @@
                 <div class="flex flex-col gap-2 p-3.5 rounded-2xl bg-rose-950/50 border-2 border-rose-500/50">
                     <div class="flex justify-between items-center text-sm font-bold">
                         <span class="text-rose-300 font-arc text-base md:text-lg flex items-center gap-2">
-                            <span>🔴</span> 레드 이지스 코어 (방어 완료: <span id="red-defense-count">0</span>/5회)
+                            <span>🔴</span> 레드 이지스 코어 (방어 완료: <span id="red-score">0</span> / 5회)
                         </span>
-                        <div id="red-defense-icons" class="flex items-center gap-1.5 text-xl">
+                        <div id="red-shields-icons" class="flex items-center gap-1.5 text-xl">
                             <span>🛡️</span><span>🛡️</span><span>🛡️</span><span>🛡️</span><span>🛡️</span>
                         </div>
                     </div>
@@ -138,68 +154,68 @@
                 </div>
             </div>
 
-            <!-- 2D Circular Sector Aegis Radar Canvas -->
+            <!-- 2D Canvas Arc Defense Radar -->
             <div class="relative w-full h-80 md:h-96 bg-slate-950 rounded-3xl border-2 border-cyan-500/60 overflow-hidden shadow-2xl">
                 <canvas id="arc-canvas" class="w-full h-full block cursor-crosshair"></canvas>
                 
-                <!-- Angle HUD Label -->
-                <div class="absolute top-2 left-3 px-3.5 py-1.5 bg-slate-950/85 border border-cyan-400/50 rounded-full text-xs font-mono text-cyan-300 z-10 flex items-center gap-2 shadow">
+                <!-- Defense Angle HUD -->
+                <div class="absolute top-2 left-3 px-3 py-1 bg-slate-950/85 border border-cyan-400/50 rounded-full text-xs font-mono text-cyan-300 z-10 flex items-center gap-2 shadow">
                     <span>📡 방어각 락온:</span>
-                    <span id="arc-hud-angle" class="font-bold text-yellow-300">미전개</span>
+                    <span id="defense-angle-label" class="font-bold text-yellow-300">중심각 ?°</span>
                 </div>
 
-                <div class="absolute top-2 right-3 px-3.5 py-1.5 bg-slate-950/85 border border-cyan-400/50 rounded-full text-[11px] font-arc text-cyan-300 z-10 flex items-center gap-1.5 shadow">
+                <div class="absolute top-2 right-3 px-3 py-1 bg-slate-950/85 border border-cyan-400/50 rounded-full text-[11px] font-arc text-cyan-300 z-10 flex items-center gap-1.5 shadow">
                     <span>👆 캔버스 터치:</span>
-                    <span class="text-yellow-300">팀 부채꼴 각도 핑(Ping)</span>
+                    <span class="text-yellow-300">팀 부채꼴 각도 링(Ping)</span>
                 </div>
             </div>
 
-            <!-- Cooperative Action Console -->
-            <div id="action-box" class="relative bg-slate-900/95 border-2 border-cyan-500/70 rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col items-center text-center arc-shield-glow">
+            <!-- Cooperative Pipeline Workspace -->
+            <div id="action-box" class="relative bg-slate-900/95 border-2 border-cyan-500/70 rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col items-center text-center shield-pulse">
                 
-                <!-- Cosmic Dust EMP Overlay (피격 시 5회 닦기) -->
+                <!-- Cosmic Dust EMP Overlay Cover -->
                 <div id="emp-dust-overlay" class="dust-overlay hidden absolute inset-0 rounded-3xl z-40 flex flex-col items-center justify-center p-6 text-center">
-                    <span class="text-5xl animate-bounce mb-2">🌪️</span>
-                    <h4 class="text-2xl font-arc text-purple-300 mb-1">적의 우주 먼지 EMP 피격! 레이더 전자기 교란</h4>
-                    <p class="text-xs md:text-sm text-slate-200 mb-4">화면이 우주 먼지로 뒤덮였습니다! 아래 버튼을 연속으로 탭해 먼지를 닦아내세요!</p>
-                    <button onclick="wipeDust()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-arc text-lg rounded-2xl shadow-xl border-2 border-purple-300 active:scale-95">
+                    <span class="text-5xl animate-bounce mb-3">🌪️</span>
+                    <h4 class="text-2xl font-arc text-purple-300 mb-1">상대 팀 우주 먼지 EMP 습격!</h4>
+                    <p class="text-sm text-slate-200 mb-4">전자기 안개로 화면이 뒤덮였습니다! 아래 버튼을 연속으로 문질러 먼지를 걷어내세요!</p>
+                    <button onclick="wipeDust()" class="px-6 py-3 bg-gradient-to-r from-purple-300 to-white text-purple-950 font-arc text-lg rounded-xl shadow-lg border-2 border-purple-400 active:scale-95">
                         🧹 우주 먼지 닦아내기 (<span id="dust-wipe-count">5</span>회 남음)
                     </button>
                 </div>
 
-                <!-- 찍기 방지 5초 실드 과열 락다운 오버레이 -->
-                <div id="lockout-penalty-box" class="hidden absolute inset-0 bg-slate-950/95 rounded-3xl z-40 flex flex-col items-center justify-center p-6 text-center border-4 border-rose-500 overheat-siren backdrop-blur-md">
+                <!-- 5초 과열 락다운 오버레이 -->
+                <div id="lockout-penalty-box" class="hidden absolute inset-0 bg-slate-950/95 rounded-3xl z-40 flex flex-col items-center justify-center p-6 text-center border-4 border-rose-500 danger-siren backdrop-blur-md">
                     <span class="text-5xl animate-bounce mb-2">⚠️</span>
-                    <h4 class="text-2xl font-arc text-rose-400 mb-1">방어막 에너지 과열! 쿨다운 긴급 냉각 중</h4>
+                    <h4 class="text-2xl font-arc text-rose-400 mb-1">방어막 에너지 과열! 제어 콘솔 긴급 냉각 중</h4>
                     <p class="text-xs md:text-sm text-slate-200 mb-3">
-                        부채꼴 공식 판정 실패! 무작위 찍기를 방지하기 위해 5초간 실드 콘솔이 정지됩니다.<br>
-                        원주율 π 앞의 계수와 중심각 공식을 다시 정확히 계산하세요!
+                        공식 계산 실패! 무작위 찍기를 방지하기 위해 5초간 콘솔이 정지됩니다.<br>
+                        모둠원들과 부채꼴 공식을 다시 검산하세요!
                     </p>
                     <div class="px-5 py-2.5 rounded-2xl bg-rose-950 border-2 border-rose-400 font-arc text-2xl text-yellow-300 flex items-center gap-2">
-                        <span>⏳ 재가동까지:</span>
+                        <span>⏳ 냉각까지:</span>
                         <span id="lockout-timer-num" class="text-3xl font-mono text-rose-400">5.0</span>초
                     </div>
                 </div>
 
                 <!-- Badges -->
                 <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
-                    <span id="my-team-badge" class="text-xs px-3.5 py-1.5 rounded-full font-bold">소속 기지</span>
+                    <span id="my-team-badge" class="text-xs px-3.5 py-1.5 rounded-full font-bold">소속 코어</span>
                     <span id="my-role-badge" class="text-xs px-3.5 py-1.5 bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 rounded-full font-bold">내 포지션</span>
-                    <span id="heat-shield-badge" class="hidden text-xs px-3.5 py-1.5 bg-amber-500/20 text-yellow-300 border border-yellow-400 rounded-full font-bold animate-pulse">
+                    <span id="heat-shield-badge" class="hidden text-xs px-3.5 py-1.5 bg-amber-500/30 text-amber-300 border border-amber-400 rounded-full font-bold">
                         🛡️ 방열 실드 활성 (오답 1회 면제)
                     </span>
-                    <span id="threat-wave-badge" class="text-xs px-3.5 py-1.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full font-bold">
-                        ☄️ 요격 위협: <span id="current-threat-name">메테오 폭격 #1</span>
+                    <span id="target-meteor-badge" class="text-xs px-3.5 py-1.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full font-bold">
+                        ☄️ 위협: <span id="current-meteor-name">메테오 폭격 #1</span>
                     </span>
                 </div>
 
-                <!-- Mission Formula & Clue Display -->
+                <!-- Clue Display -->
                 <div class="w-full max-w-2xl bg-slate-950 border-2 border-cyan-400/80 rounded-2xl p-4 md:p-5 shadow-inner mb-4">
                     <div class="text-xs font-semibold text-cyan-300 mb-1 tracking-wider uppercase flex items-center justify-center gap-1.5">
-                        <span>🧭</span> 부채꼴 사령부 레이더 신호 분석
+                        <span>🛰️</span> 부채꼴 사령부 레이더 신호 분석
                     </div>
                     <div id="mission-clue-display" class="text-lg md:text-2xl font-arc text-yellow-300 tracking-wide leading-relaxed">
-                        부채꼴 레이더 파동 동기화 중...
+                        부채꼴 궤도 수신 중...
                     </div>
                 </div>
 
@@ -209,31 +225,28 @@
                         단계 안내 로딩 중...
                     </div>
 
-                    <!-- Input Mode: Number Input (Step 0, 1, 2) -->
-                    <div id="number-input-control" class="flex flex-col sm:flex-row items-center justify-center gap-2 w-full max-w-md">
-                        <div class="relative w-full sm:w-56">
-                            <input type="number" id="step-number-input" placeholder="숫자 입력" 
-                                   class="w-full px-4 py-3 rounded-xl bg-slate-950 border-2 border-cyan-400 text-white font-bold text-xl text-center focus:outline-none focus:ring-2 focus:ring-cyan-300"
-                                   onkeydown="if(event.key==='Enter') submitStep()">
-                            <span id="pi-unit-label" class="hidden absolute right-4 top-3 text-cyan-300 font-arc text-xl pointer-events-none">π</span>
-                        </div>
-                        <button id="submit-step-btn" onclick="submitStep()" 
-                                class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-cyan-500 to-sky-400 hover:from-cyan-400 hover:to-sky-300 text-slate-950 font-arc text-lg rounded-xl transition shadow-lg flex items-center justify-center gap-1.5 active:scale-95">
-                            <span>📡</span><span>에너지 고정</span>
+                    <!-- Number Input Control (Step 0, 1, 2) -->
+                    <div id="number-input-control" class="hidden flex flex-col sm:flex-row items-center justify-center gap-2 w-full max-w-md">
+                        <input type="number" id="step-number-input" placeholder="계산된 숫자 입력" 
+                               class="w-full sm:w-48 px-4 py-3 rounded-xl bg-slate-950 border-2 border-cyan-400 text-white font-bold text-xl text-center focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                               onkeydown="if(event.key==='Enter') submitArcStep()">
+                        <button id="submit-arc-btn" onclick="submitArcStep()" 
+                                class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-cyan-400 to-teal-400 hover:from-cyan-300 hover:to-teal-300 text-slate-950 font-arc text-lg rounded-xl transition shadow-lg flex items-center justify-center gap-1.5 active:scale-95">
+                            <span>📡</span><span>쉴드 락온</span>
                         </button>
                     </div>
 
-                    <!-- Input Mode 4: Deploy & Counter Laser Fire Button (Step 3) -->
-                    <div id="shield-deploy-control" class="hidden flex flex-col items-center gap-2 w-full max-w-md">
-                        <button onclick="deployShieldStep()" class="w-full py-4 bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 hover:from-sky-400 hover:to-indigo-400 text-white font-arc text-2xl rounded-2xl shadow-xl border-2 border-cyan-300 active:scale-95 transition animate-pulse flex items-center justify-center gap-2">
+                    <!-- Step 3 Fire / Tactical Module Launch Control -->
+                    <div id="tactical-launch-control" class="hidden flex flex-col items-center gap-2 w-full max-w-md">
+                        <button onclick="openTacticalModal()" class="w-full py-4 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-300 text-slate-950 font-arc text-xl md:text-2xl rounded-2xl shadow-xl border-2 border-white active:scale-95 transition animate-pulse flex items-center justify-center gap-2">
                             <span>🚀</span><span>에이지스 전술 모듈 선택 & 카운터 포격!</span>
                         </button>
-                        <span class="text-xs text-cyan-200 font-semibold">부채꼴 방어막 완벽 형성! 전술 모듈 카드를 선택하여 반격하세요!</span>
+                        <span class="text-xs text-yellow-200 font-semibold">면적 압축 완료! 전술 카드를 골라 반격 레이저를 쏘세요!</span>
                     </div>
 
-                    <!-- Waiting Notice for Other Members -->
+                    <!-- Waiting Notice -->
                     <div id="waiting-notice" class="hidden p-3 rounded-xl bg-slate-950/80 border border-slate-700 text-xs md:text-sm text-cyan-200">
-                        ⏳ 현재 <span id="current-actor-name" class="font-bold text-yellow-300"></span> 대원이 방어막을 설계 중입니다. 캔버스를 터치하여 각도 핑을 찍어주세요!
+                        ⏳ 현재 <span id="current-actor-name" class="font-bold text-yellow-300"></span> 대원이 부채꼴을 계산 중입니다. 캔버스를 터치하여 각도 핑을 공유하세요!
                     </div>
                 </div>
 
@@ -243,13 +256,13 @@
                         ① 중심각 분석관
                     </div>
                     <div id="stage-card-1" class="p-2.5 rounded-xl border transition-all text-slate-400 bg-slate-950/60 border-slate-800">
-                        ② 호(Arc) 유도사
+                        ② 호의 길이 유도사
                     </div>
                     <div id="stage-card-2" class="p-2.5 rounded-xl border transition-all text-slate-400 bg-slate-950/60 border-slate-800">
-                        ③ 넓이 압축사
+                        ③ 면적 압축사
                     </div>
                     <div id="stage-card-3" class="p-2.5 rounded-xl border transition-all text-slate-400 bg-slate-950/60 border-slate-800">
-                        ④ 쉴드 격발관 🚀
+                        ④ 쉴드 격발 & 카운터 🚀
                     </div>
                 </div>
 
@@ -257,14 +270,14 @@
                 <div id="battle-feedback" class="text-sm font-bold min-h-[24px] mt-3"></div>
 
                 <div class="flex flex-wrap items-center justify-center gap-2 mt-2">
-                    <button onclick="sendQuickCheer('호의 길이는 2πr × (x/360)! 📐')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
-                        📐 l = 2πr × (x/360)
+                    <button onclick="sendQuickCheer('호의 길이 공식 l = 2πr × (x/360)! 📐')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
+                        📐 호의 길이 공식!
                     </button>
-                    <button onclick="sendQuickCheer('넓이는 πr² × (x/360) = 1/2 lr! 🛡️')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
-                        🛡️ S = 1/2 lr 기억!
+                    <button onclick="sendQuickCheer('부채꼴 넓이는 (1/2)lr 또는 πr²(x/360)! 🍕')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
+                        🍕 넓이 공식 확인!
                     </button>
-                    <button onclick="sendQuickCheer('π 앞의 계수 숫자만 입력해! ⚡')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
-                        ⚡ π 계수만 입력!
+                    <button onclick="sendQuickCheer('π 기호 앞의 계수만 정확히 입력해! 💡')" class="px-3 py-1 bg-slate-950/80 hover:bg-slate-800 border border-cyan-500/40 rounded-lg text-xs text-cyan-200">
+                        💡 π 계수 확인!
                     </button>
                 </div>
 
@@ -273,59 +286,78 @@
         </div>
     </main>
 
+    <!-- Tactical Module Selection Modal -->
+    <div id="tactical-select-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 border-4 border-cyan-400 rounded-3xl p-6 md:p-8 max-w-2xl w-full text-center shadow-[0_0_50px_rgba(34,211,238,0.4)]">
+            <div class="text-4xl mb-1 float-icon">🚀</div>
+            <h4 class="text-2xl md:text-3xl font-arc text-cyan-300 mb-1">4단계: 에이지스 전술 모듈 선택</h4>
+            <p id="tactical-fever-notice" class="text-xs text-yellow-300 font-bold mb-5">
+                ⚡ [HYPER FEVER!] 무결점 연산 달성! 황금 카운터 빔과 슈퍼 전술 효과 발동!
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <!-- Card 1: Mega Reflect -->
+                <button onclick="chooseTacticalModule('reflect')" class="group p-5 rounded-2xl bg-gradient-to-b from-cyan-950/90 to-slate-950 border-2 border-cyan-500 hover:border-yellow-300 flex flex-col items-center gap-3 transition hover:scale-105 active:scale-95 shadow-xl text-left">
+                    <span class="text-4xl">🛡️</span>
+                    <div class="text-center">
+                        <span class="font-arc text-base text-cyan-300 block mb-1">메가 리플렉트</span>
+                        <span class="text-[11px] text-slate-300 leading-relaxed block">
+                            폭격을 완벽 방어하고 <b class="text-cyan-300">초광속 카운터 레이저 빔</b>을 즉시 발사!
+                        </span>
+                    </div>
+                </button>
+
+                <!-- Card 2: Space Dust EMP -->
+                <button onclick="chooseTacticalModule('emp')" class="group p-5 rounded-2xl bg-gradient-to-b from-purple-950/90 to-slate-950 border-2 border-purple-500 hover:border-yellow-300 flex flex-col items-center gap-3 transition hover:scale-105 active:scale-95 shadow-xl text-left">
+                    <span class="text-4xl">🌪️</span>
+                    <div class="text-center">
+                        <span class="font-arc text-base text-purple-300 block mb-1">우주 먼지 EMP</span>
+                        <span class="text-[11px] text-slate-300 leading-relaxed block">
+                            적 기지에 전자기 안개 살포! <b class="text-purple-300">(상대 화면 5회 터치 마비)</b>
+                        </span>
+                    </div>
+                </button>
+
+                <!-- Card 3: Energy Harvest -->
+                <button onclick="chooseTacticalModule('harvest')" class="group p-5 rounded-2xl bg-gradient-to-b from-amber-950/90 to-slate-950 border-2 border-amber-500 hover:border-yellow-300 flex flex-col items-center gap-3 transition hover:scale-105 active:scale-95 shadow-xl text-left">
+                    <span class="text-4xl">🔋</span>
+                    <div class="text-center">
+                        <span class="font-arc text-base text-amber-300 block mb-1">에너지 하베스트</span>
+                        <span class="text-[11px] text-slate-300 leading-relaxed block">
+                            폭격을 흡수해 황금 방어막 형성! <b class="text-amber-300">(오답 5초 잠금 1회 면제)</b>
+                        </span>
+                    </div>
+                </button>
+            </div>
+
+            <button onclick="document.getElementById('tactical-select-modal').classList.add('hidden')" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl">
+                닫기
+            </button>
+        </div>
+    </div>
+
     <!-- Custom Modal -->
     <div id="custom-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
         <div class="bg-slate-900 border-2 border-cyan-400 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
             <h4 id="modal-title" class="text-2xl font-arc text-cyan-300 mb-2">사령부 통신</h4>
             <p id="modal-body" class="text-sm text-slate-200 mb-6">내용</p>
-            <button onclick="closeCustomModal()" class="bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 font-arc px-6 py-2.5 rounded-xl transition shadow-lg hover:scale-105">
+            <button onclick="closeCustomModal()" class="bg-gradient-to-r from-cyan-400 to-teal-500 text-slate-950 font-arc px-6 py-2.5 rounded-xl transition shadow-lg hover:scale-105">
                 확인
             </button>
         </div>
     </div>
 
-    <!-- Tactical Module Selection Modal (Step 4 전술 카드 3종 선택창) -->
-    <div id="tactical-select-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-slate-900 border-2 border-cyan-400 rounded-3xl p-6 max-w-lg w-full text-center shadow-2xl">
-            <div class="text-4xl mb-1">🚀</div>
-            <h3 class="text-2xl font-arc text-yellow-300 mb-1">4단계: 에이지스 전술 모듈 선택</h3>
-            <p id="tactical-fever-bonus" class="text-xs font-bold text-cyan-300 mb-5">원하는 전술 카드를 터치하면 즉시 포격과 고유 효과가 발동됩니다.</p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-                <!-- Card 1: Mega Reflect -->
-                <button onclick="chooseTacticalModule('reflect')" class="p-4 rounded-2xl bg-gradient-to-b from-sky-950 to-blue-950 border-2 border-cyan-400 hover:border-yellow-300 flex flex-col items-center gap-2 transition hover:scale-105 active:scale-95 text-center">
-                    <span class="text-3xl">🛡️</span>
-                    <span class="font-arc text-base text-cyan-300">메가 리플렉트</span>
-                    <span class="text-[11px] text-slate-300 leading-tight">폭격을 완벽 방어하고 압축 카운터 레이저 빔 즉시 발사!</span>
-                </button>
-                <!-- Card 2: Cosmic EMP -->
-                <button onclick="chooseTacticalModule('emp')" class="p-4 rounded-2xl bg-gradient-to-b from-purple-950 to-indigo-950 border-2 border-purple-400 hover:border-yellow-300 flex flex-col items-center gap-2 transition hover:scale-105 active:scale-95 text-center">
-                    <span class="text-3xl">🌪️</span>
-                    <span class="font-arc text-base text-purple-300">우주 먼지 EMP</span>
-                    <span class="text-[11px] text-slate-300 leading-tight">적 기지에 전자기 안개 살포! (상대 화면 5회 터치 마비)</span>
-                </button>
-                <!-- Card 3: Energy Harvest -->
-                <button onclick="chooseTacticalModule('harvest')" class="p-4 rounded-2xl bg-gradient-to-b from-amber-950 to-yellow-950 border-2 border-amber-400 hover:border-yellow-300 flex flex-col items-center gap-2 transition hover:scale-105 active:scale-95 text-center">
-                    <span class="text-3xl">🔋</span>
-                    <span class="font-arc text-base text-yellow-300">에너지 하베스트</span>
-                    <span class="text-[11px] text-slate-300 leading-tight">폭격을 흡수해 황금 방어막 형성! (다음 웨이브 확정 피버)</span>
-                </button>
-            </div>
-            <button onclick="closeTacticalModal()" class="text-xs text-slate-400 hover:text-white underline">닫기</button>
-        </div>
-    </div>
-
     <!-- Victory Modal -->
     <div id="victory-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl hidden flex items-center justify-center z-50 p-4">
-        <div class="relative bg-gradient-to-b from-slate-900 via-sky-950 to-slate-950 border-4 border-cyan-400 rounded-3xl p-6 md:p-8 max-w-lg w-full text-center shadow-[0_0_60px_rgba(56,189,248,0.6)] overflow-hidden">
-            <div class="text-6xl md:text-7xl mb-2">🏆</div>
+        <div class="relative bg-gradient-to-b from-slate-900 via-teal-950 to-slate-950 border-4 border-cyan-400 rounded-3xl p-6 md:p-8 max-w-lg w-full text-center shadow-[0_0_60px_rgba(34,211,238,0.6)] overflow-hidden">
+            <div class="text-6xl md:text-7xl mb-2 float-icon">🏆</div>
             <div class="inline-block px-4 py-1 rounded-full bg-cyan-400 text-slate-950 font-arc text-xs tracking-wider mb-2">
-                🛡️ AEGIS ARC DEFENSE GRAND VICTORY
+                🪐 AEGIS ARC DEFENSE GRAND VICTORY
             </div>
-            <h3 id="victory-team-title" class="text-3xl md:text-4xl font-arc text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-cyan-400 mb-3">
-                청군 코어 완승!
+            <h3 id="victory-team-title" class="text-3xl md:text-4xl font-arc text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-teal-200 to-sky-400 mb-3">
+                청군 코어 (블루 아크) 대승리!
             </h3>
-            <p id="victory-desc" class="text-xs md:text-sm text-cyan-200 mb-5 leading-relaxed">
+            <p id="victory-desc" class="text-xs md:text-sm text-teal-200 mb-5 leading-relaxed">
                 5개의 메테오 웨이브를 완벽한 부채꼴 중심각과 호·넓이 공식으로 모두 방어하고 적 기지를 제압했습니다!
             </p>
 
@@ -348,8 +380,8 @@
                 </div>
             </div>
 
-            <button onclick="location.reload()" class="w-full py-4 bg-gradient-to-r from-cyan-400 via-sky-400 to-cyan-500 hover:from-cyan-300 hover:to-sky-300 text-slate-950 font-arc text-lg rounded-2xl shadow-xl transform active:scale-95 transition">
-                ⚡ 새로운 방어 구역 재도전
+            <button onclick="location.reload()" class="w-full py-4 bg-gradient-to-r from-cyan-400 via-teal-400 to-sky-500 hover:from-cyan-300 hover:to-teal-300 text-slate-950 font-arc text-lg rounded-2xl shadow-xl transform active:scale-95 transition">
+                🪐 새로운 방어 구역 재도전
             </button>
         </div>
     </div>
@@ -384,47 +416,40 @@
                     osc.stop(this.ctx.currentTime + duration);
                 } catch (e) {}
             }
+            radarPing() {
+                this.init();
+                this.playTone(784, 'sine', 0.35, 0.2);
+                setTimeout(() => this.playTone(1174.66, 'sine', 0.45, 0.2), 70);
+            }
             shieldDeploy() {
                 this.init();
-                this.playTone(320, 'sine', 0.2, 0.25);
-                setTimeout(() => this.playTone(640, 'triangle', 0.35, 0.3), 80);
-                setTimeout(() => this.playTone(960, 'sine', 0.45, 0.2), 160);
+                this.playTone(320, 'triangle', 0.25, 0.25);
+                setTimeout(() => this.playTone(540, 'sine', 0.35, 0.3), 80);
             }
-            counterLaser() {
+            meteorExplosion() {
                 this.init();
-                this.playTone(1200, 'sawtooth', 0.15, 0.25);
-                setTimeout(() => this.playTone(880, 'sawtooth', 0.25, 0.25), 60);
-                setTimeout(() => this.playTone(440, 'triangle', 0.4, 0.3), 140);
-            }
-            explosion() {
-                this.init();
-                this.playTone(90, 'sawtooth', 0.6, 0.4);
-                setTimeout(() => this.playTone(60, 'triangle', 0.7, 0.35), 70);
+                this.playTone(85, 'sawtooth', 0.5, 0.35);
+                setTimeout(() => this.playTone(50, 'triangle', 0.6, 0.3), 60);
             }
             success() {
                 this.init();
-                this.playTone(523.25, 'triangle', 0.12, 0.2);
-                setTimeout(() => this.playTone(659.25, 'triangle', 0.18, 0.25), 90);
+                this.playTone(587.33, 'triangle', 0.15, 0.2);
+                setTimeout(() => this.playTone(880.00, 'triangle', 0.22, 0.25), 90);
             }
             error() {
                 this.init();
-                this.playTone(210, 'sawtooth', 0.2, 0.25);
-                setTimeout(() => this.playTone(150, 'sawtooth', 0.25, 0.3), 90);
-            }
-            tacticalPing() {
-                this.init();
-                this.playTone(700, 'sine', 0.15, 0.2);
-                setTimeout(() => this.playTone(1050, 'triangle', 0.25, 0.25), 50);
+                this.playTone(170, 'sawtooth', 0.2, 0.3);
+                setTimeout(() => this.playTone(120, 'sawtooth', 0.25, 0.3), 80);
             }
             victoryFanfare() {
                 this.init();
                 const notes = [
-                    { f: 523.25, d: 0.18 },
-                    { f: 659.25, d: 0.18 },
-                    { f: 783.99, d: 0.22 },
-                    { f: 1046.50, d: 0.5 },
-                    { f: 783.99, d: 0.18 },
-                    { f: 1046.50, d: 0.8 }
+                    { f: 587.33, d: 0.18 },
+                    { f: 739.99, d: 0.18 },
+                    { f: 880.00, d: 0.22 },
+                    { f: 1174.66, d: 0.5 },
+                    { f: 880.00, d: 0.18 },
+                    { f: 1174.66, d: 0.8 }
                 ];
                 let delay = 0;
                 notes.forEach(n => {
@@ -436,10 +461,10 @@
         const sfx = new SoundFX();
     </script>
 
-    <!-- Main Game Logic and Firebase Synchronizer -->
+    <!-- Main Game Logic and Firestore Synchronizer -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChxrOzoTxFMy_BvkvNZLXAp1oRvN7Fb1g",
@@ -452,262 +477,119 @@
         };
 
         let db = null;
+        let useFallback = false;
+
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firestore 표준 초기화 완료");
+            document.getElementById('db-status-badge').innerText = "🟢 클라우드 DB 정상 연결!";
+            document.getElementById('db-status-badge').className = "text-emerald-400 font-bold";
         } catch (e) {
-            console.error("Firebase init error:", e);
+            useFallback = true;
+            document.getElementById('db-status-badge').innerText = "🟡 로컬 전용 모드 작동";
+            document.getElementById('db-status-badge').className = "text-yellow-400 font-bold";
         }
 
-        // 고유 브라우저 세션 ID 발급 (새로고침 시 중복 대원 생성 방지)
-        let myPlayerId = sessionStorage.getItem('aegis_player_id');
-        if (!myPlayerId) {
-            myPlayerId = 'p_' + Math.random().toString(36).substring(2, 9);
-            sessionStorage.setItem('aegis_player_id', myPlayerId);
-        }
-
-        let heartbeatInterval = null;
-
-        // 12초 이상 하트비트가 없는 오프라인/창 닫은 유령 유저 자동 제거 함수
-        function pruneGhostMembers(list = []) {
-            const now = Date.now();
-            return list.filter(m => {
-                if (!m) return false;
-                // 내가 방금 접속한 경우 내 객체는 유지
-                if (m.id === myPlayerId || m.name === currentUserName) return true;
-                const lastSeen = m.lastSeen || m.joinedAt || 0;
-                return (now - lastSeen) < 14000; // 14초 이상 생존 신호 없으면 유령으로 간주하고 삭제!
-            });
-        }
-
-        // 고유 ID 및 닉네임 기반으로 엄격하게 중복을 제거하고 생존 유저만 남기는 멤버 정규화 함수
-        function normalizeMembers(list = []) {
-            const activeList = pruneGhostMembers(list);
-            const map = new Map();
-            activeList.forEach(item => {
-                if (!item) return;
-                const id = item.id || (typeof item === 'string' ? item : item.name);
-                const name = item.name || item;
-                const joinedAt = item.joinedAt || Date.now();
-                const lastSeen = item.lastSeen || Date.now();
-                if (!map.has(id)) {
-                    map.set(id, { id: id, name: name, joinedAt: joinedAt, lastSeen: lastSeen });
-                }
-            });
-            return Array.from(map.values()).sort((a, b) => a.joinedAt - b.joinedAt);
-        }
-
-        // 4초마다 내 생존 신호(Heartbeat)를 서버에 보내는 함수
-        function startHeartbeatLoop() {
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-            heartbeatInterval = setInterval(async () => {
-                if (!db || !currentRoomCode || !myPlayerId || !lastKnownRoomData) return;
-                try {
-                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
-                    const snap = await getDoc(roomRef);
-                    if (!snap.exists()) return;
-                    const data = snap.data();
-
-                    const touch = (list = []) => list.map(m => {
-                        if (m.id === myPlayerId || m.name === currentUserName) {
-                            return { ...m, lastSeen: Date.now() };
-                        }
-                        return m;
-                    });
-
-                    const bluePruned = normalizeMembers(touch(data.blueMembers || []));
-                    const redPruned = normalizeMembers(touch(data.redMembers || []));
-
-                    // 인원 변동 또는 생존 신호 갱신
-                    await updateDoc(roomRef, {
-                        blueMembers: bluePruned,
-                        redMembers: redPruned,
-                        updatedAt: Date.now()
-                    });
-                } catch (e) {}
-            }, 4000);
-        }
-
-        // 방 인원 및 게임 데이터 즉시 강제 리셋 함수 (유령 대원 싹 청소)
-        window.resetCurrentRoomData = async function() {
-            let code = currentRoomCode || document.getElementById('room-code').value.trim() || 'aegis101';
-            
-            const cleanData = createInitialRoomData();
-            if (currentUserName && myPlayerId && myTeam) {
-                // 현재 누른 사람만 1번 대원으로 남겨두기
-                const me = { id: myPlayerId, name: currentUserName, joinedAt: Date.now(), lastSeen: Date.now() };
-                if (myTeam === 'blue') cleanData.blueMembers = [me];
-                else cleanData.redMembers = [me];
-            }
-
-            applyRoomState(cleanData, true);
-
-            if (db) {
-                try {
-                    const roomRef = doc(db, 'aegis_arc_rooms', code);
-                    await setDoc(roomRef, cleanData);
-                    showCustomModal("초기화 완료", `배틀룸 [${code}]의 모든 유령 대원이 제거되었습니다!`);
-                } catch (e) {
-                    alert("초기화 실패: " + e.message);
-                }
-            }
-        };
-
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'aegis-arc-default';
         let currentUserName = '';
         let currentRoomCode = '';
         let myTeam = '';
+        let myPlayerId = 'p_' + Math.random().toString(36).substring(2, 9);
         let unsubscribeRoom = null;
         let lastKnownRoomData = null;
         let bc = null;
+        let heartbeatInterval = null;
 
         let missionStartTime = Date.now();
         let prevWasMyTurn = false;
         let battleEnded = false;
         let isLockedOut = false;
         let lockoutTimerInterval = null;
-        const recentProblemsSet = new Set();
-        let isHyperFeverActive = false;
-        let mistakesOnCurrentWave = 0;
-        let dustWipesRemaining = 5;
+        const recentCluesSet = new Set();
 
-        // Dust EMP Functions
-        function activateDustCover() {
-            dustWipesRemaining = 5;
-            document.getElementById('dust-wipe-count').innerText = dustWipesRemaining;
-            document.getElementById('emp-dust-overlay').classList.remove('hidden');
-            sfx.error();
-        }
-
-        window.wipeDust = function() {
-            dustWipesRemaining--;
-            document.getElementById('dust-wipe-count').innerText = dustWipesRemaining;
-            sfx.playTone(350, 'triangle', 0.1, 0.15);
-            if (dustWipesRemaining <= 0) {
-                document.getElementById('emp-dust-overlay').classList.add('hidden');
-                sfx.success();
-            }
-        };
-
-        function generateSectorMission(waveIndex = 1) {
+        // Procedural Math Engine for Sector (Arc Shield) Mission
+        function generateArcMission(waveIndex = 1) {
             let mission = null;
             let attempts = 0;
 
-            const candidates = [
-                { r: 6, x: 60 },
-                { r: 6, x: 120 },
-                { r: 6, x: 240 },
-                { r: 8, x: 45 },
-                { r: 8, x: 90 },
-                { r: 8, x: 135 },
-                { r: 9, x: 120 },
-                { r: 10, x: 72 },
-                { r: 10, x: 144 },
-                { r: 12, x: 30 },
-                { r: 12, x: 60 },
-                { r: 12, x: 90 },
-                { r: 12, x: 150 },
-                { r: 15, x: 120 },
-                { r: 4, x: 90 },
-                { r: 4, x: 180 },
-                { r: 5, x: 144 },
-                { r: 18, x: 40 },
-                { r: 18, x: 80 },
-                { r: 16, x: 45 },
-                { r: 16, x: 90 }
-            ];
-
             while (attempts < 100) {
                 attempts++;
-                const item = candidates[Math.floor(Math.random() * candidates.length)];
-                const r = item.r;
-                const x = item.x;
-                const arcCoef = (r * x) / 180;
-                const areaCoef = (r * r * x) / 360;
-                const startAngle = (Math.floor(Math.random() * 12) * 30) % 360;
+                // Generate random radius r (4 to 10 cm) and sector central angle x (30, 45, 60, 90, 120, 150, 180)
+                const radii = [4, 5, 6, 8, 9, 10];
+                const angles = [30, 45, 60, 90, 120, 150, 180];
+                const r = radii[Math.floor(Math.random() * radii.length)];
+                const x = angles[Math.floor(Math.random() * angles.length)];
 
-                const problemKey = `${r}_${x}_${startAngle}`;
-                if (!recentProblemsSet.has(problemKey) || attempts > 80) {
-                    recentProblemsSet.add(problemKey);
-                    if (recentProblemsSet.size > 40) {
-                        const first = recentProblemsSet.values().next().value;
-                        recentProblemsSet.delete(first);
-                    }
+                // Arc length l = 2 * pi * r * (x / 360)
+                const lNumerator = 2 * r * x;
+                const gcdVal = gcd(lNumerator, 360);
+                const lNum = lNumerator / gcdVal;
+                const lDen = 360 / gcdVal;
+                const arcLengthStr = lDen === 1 ? `${lNum}π` : `${lNum}/${lDen}π`;
 
-                    let step0Clue = "";
-                    const clueType = Math.floor(Math.random() * 3);
-                    if (clueType === 0) {
-                        step0Clue = `반지름 r = ${r}, 전체 원의 ${x}/360 에 해당하는 중심각 x° 구역에 메테오 폭격 접근!`;
-                    } else if (clueType === 1) {
-                        const fracDenom = 360 / x;
-                        if (Number.isInteger(fracDenom)) {
-                            step0Clue = `반지름 r = ${r}, 전체 원둘레의 1/${fracDenom}을 차지하는 중심각 x° 방어막 형성 지령!`;
-                        } else {
-                            step0Clue = `반지름 r = ${r}, 중심각 크기가 ${x}°인 궤도에 고에너지 위협 탐지!`;
-                        }
-                    } else {
-                        step0Clue = `호의 길이가 ${arcCoef}π이고 반지름이 ${r}인 부채꼴 궤도의 중심각 x°를 도출하라!`;
+                // Sector Area S = pi * r^2 * (x / 360)
+                const sNumerator = r * r * x;
+                const sGcd = gcd(sNumerator, 360);
+                const sNum = sNumerator / sGcd;
+                const sDen = 360 / sGcd;
+                const areaStr = sDen === 1 ? `${sNum}π` : `${sNum}/${sDen}π`;
+
+                // 1단계 클루 (중심각 유도)
+                const clues = [
+                    `반지름이 ${r}cm이고 호의 길이가 ${arcLengthStr}인 부채꼴의 중심각 x°를 구하라!`,
+                    `반지름이 ${r}cm이고 넓이가 ${areaStr}인 부채꼴의 중심각 x°를 구하라!`,
+                    `전체 원주 중 호의 길이 비율이 호도법에 따라 계산될 때, 반지름 ${r}인 원에서 호의 길이 ${arcLengthStr}를 만드는 중심각 x°는?`
+                ];
+                const fullClue = clues[(waveIndex - 1) % clues.length];
+
+                if (!recentCluesSet.has(fullClue) || attempts > 70) {
+                    recentCluesSet.add(fullClue);
+                    if (recentCluesSet.size > 30) {
+                        const first = recentCluesSet.values().next().value;
+                        recentCluesSet.delete(first);
                     }
 
                     mission = {
-                        r: r,
-                        x: x,
-                        arcCoef: arcCoef,
-                        areaCoef: areaCoef,
-                        startAngle: startAngle,
-                        endAngle: (startAngle + x) % 360,
-                        step0Clue: step0Clue,
-                        step1Clue: `호의 길이 l = 2πr × (x/360) 계산: π 앞의 계수 숫자 입력! (r=${r}, x=${x}°)`,
-                        step2Clue: `넓이 S = 1/2 lr = πr² × (x/360) 계산: π 앞의 계수 숫자 입력! (l=${arcCoef}π, r=${r})`
+                        radius: r,
+                        angle: x,
+                        arcNum: lNum,
+                        arcDen: lDen,
+                        areaNum: sNum,
+                        areaDen: sDen,
+                        fullClue: fullClue
                     };
                     break;
                 }
             }
 
             if (!mission) {
-                mission = {
-                    r: 6,
-                    x: 60,
-                    arcCoef: 2,
-                    areaCoef: 6,
-                    startAngle: 45,
-                    endAngle: 105,
-                    step0Clue: "반지름 r = 6, 중심각 x = 60° 구역에 메테오 폭격 접근!",
-                    step1Clue: "호의 길이 l = 2πr × (x/360) 계산: π 앞의 계수 숫자 입력! (r=6, x=60°)",
-                    step2Clue: "넓이 S = 1/2 lr 계산: π 앞의 계수 숫자 입력! (l=2π, r=6)"
-                };
+                mission = { radius: 6, angle: 60, arcNum: 2, arcDen: 1, areaNum: 6, areaDen: 1, fullClue: "반지름이 6cm이고 호의 길이가 2π인 부채꼴의 중심각 x°를 구하라!" };
             }
             return mission;
         }
 
-        function triggerLockoutPenalty() {
-            if (isLockedOut) return;
-            
-            const team = myTeam;
-            const data = lastKnownRoomData;
-            const hasHeatShield = team === 'blue' ? data?.blueHeatShield : data?.redHeatShield;
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
 
-            if (hasHeatShield) {
-                sfx.shieldDeploy();
-                showStepFeedback("🛡️ [방열 실드 발동!] 에너지 하베스트 보호막이 작동하여 5초 잠금을 1회 면제했습니다! 다시 계산하세요!", false);
-                const nextData = { ...data };
-                if (team === 'blue') nextData.blueHeatShield = false;
-                else nextData.redHeatShield = false;
-                nextData.updatedAt = Date.now();
-                syncStateUpdate(nextData);
+        function triggerLockoutPenalty(isHeatShieldProtected = false) {
+            if (isHeatShieldProtected) {
+                sfx.success();
+                showStepFeedback("🛡️ [방열 실드 발동!] 5초 잠금 페널티가 면제되었습니다! 다시 도전하세요!", false);
                 return;
             }
 
+            if (isLockedOut) return;
             isLockedOut = true;
-            isHyperFeverActive = false;
-            mistakesOnCurrentWave++;
             sfx.error();
 
             const lockoutBox = document.getElementById('lockout-penalty-box');
             const timerEl = document.getElementById('lockout-timer-num');
             lockoutBox.classList.remove('hidden');
 
+            let remainMs = 5000;
             timerEl.innerText = '5.0';
+
             if (lockoutTimerInterval) clearInterval(lockoutTimerInterval);
             const startAt = Date.now();
 
@@ -721,44 +603,51 @@
                     lockoutTimerInterval = null;
                     isLockedOut = false;
                     lockoutBox.classList.add('hidden');
-                    sfx.playTone(560, 'sine', 0.15, 0.2);
+                    sfx.playTone(520, 'sine', 0.15, 0.2);
                     showStepFeedback("⚡ [냉각 완료] 쉴드 제어 콘솔이 정상 복구되었습니다. 신중히 입력하세요!", false);
                 }
             }, 100);
         }
 
-        // 고유 ID 및 닉네임 기반으로 엄격하게 중복을 제거하는 멤버 정규화 함수
-        function normalizeMembers(list = []) {
+        // Clean member merge without ghost accumulation
+        function mergeMembers(listA = [], listB = []) {
             const map = new Map();
-            list.forEach(item => {
+            const now = Date.now();
+            [...listA, ...listB].forEach(item => {
                 if (!item) return;
-                const id = item.id || (typeof item === 'string' ? item : item.name);
-                const name = item.name || item;
-                const joinedAt = item.joinedAt || Date.now();
-                if (!map.has(id)) {
-                    map.set(id, { id: id, name: name, joinedAt: joinedAt });
+                const obj = typeof item === 'string' 
+                    ? { id: item, name: item, lastSeen: now, joinedAt: now } 
+                    : { id: item.id || item.name, name: item.name, lastSeen: item.lastSeen || now, joinedAt: item.joinedAt || now };
+                
+                // Prune inactive members older than 14 seconds
+                if (now - obj.lastSeen < 14000) {
+                    if (!map.has(obj.id) || map.get(obj.id).joinedAt > obj.joinedAt) {
+                        map.set(obj.id, obj);
+                    }
                 }
             });
-            return Array.from(map.values()).sort((a, b) => a.joinedAt - b.joinedAt);
+            return Array.from(map.values()).sort((a, b) => 
+                a.joinedAt !== b.joinedAt ? a.joinedAt - b.joinedAt : a.name.localeCompare(b.name)
+            );
         }
 
-        function getStageActorIndex(stage, teamSize, problemCount = 1) {
+        function getStageActorIndex(stage, teamSize, waveIndex = 1) {
             if (teamSize <= 1) return 0;
-            const shift = (Math.max(1, problemCount) - 1) % teamSize;
+            const shift = (Math.max(1, waveIndex) - 1) % teamSize;
             return (stage + shift) % teamSize;
         }
 
-        function getRoleDescription(memberIndex, teamSize, problemCount = 1) {
-            if (teamSize <= 1) return "올라운드 치프 아크 수호관 (전 구역 단독 제어)";
+        function getRoleDescription(memberIndex, teamSize, waveIndex = 1) {
+            if (teamSize <= 1) return "올라운드 사령관 (전 구역 단독 락온)";
             const stageNames = [
-                "① 중심각/비례 분석",
-                "② 호(Arc) 궤적 유도",
-                "③ 에너지 면적 압축",
-                "④ 쉴드 전개 & 카운터 포격 🚀"
+                "① 중심각 분석",
+                "② 호의 길이 유도",
+                "③ 면적 압축",
+                "④ 쉴드 격발 & 카운터 🚀"
             ];
             const myAssignedStages = [];
             for (let s = 0; s < 4; s++) {
-                if (getStageActorIndex(s, teamSize, problemCount) === memberIndex) {
+                if (getStageActorIndex(s, teamSize, waveIndex) === memberIndex) {
                     myAssignedStages.push(stageNames[s]);
                 }
             }
@@ -767,47 +656,40 @@
 
         function createInitialRoomData() {
             return {
-                blueDefense: 0,
-                redDefense: 0,
+                blueScore: 0,
+                redScore: 0,
                 blueMembers: [],
                 redMembers: [],
                 blueStage: 0,
                 redStage: 0,
-                blueProblemCount: 1,
-                redProblemCount: 1,
-                blueMission: generateSectorMission(1),
-                redMission: generateSectorMission(1),
-                blueShieldVisual: { angleSet: false, arcSet: false, areaSet: false, deployed: false },
-                redShieldVisual: { angleSet: false, arcSet: false, areaSet: false, deployed: false },
-                lastLaser: null,
+                blueWave: 1,
+                redWave: 1,
+                blueMission: generateArcMission(1),
+                redMission: generateArcMission(1),
+                blueShield: { angle: null, arc: null, area: null },
+                redShield: { angle: null, arc: null, area: null },
+                blueHeatShield: false,
+                redHeatShield: false,
+                lastLaunch: null,
+                lastDefense: null,
                 lastPing: null,
-                dustTarget: null,
-                dustId: 0,
+                smokeTarget: null,
+                smokeId: 0,
                 updatedAt: Date.now()
             };
         }
 
         window.joinTeam = async function(team) {
-            let name = document.getElementById('player-name').value.trim();
-            let code = document.getElementById('room-code').value.trim();
-
-            if (!name) {
-                name = '대원_' + Math.floor(Math.random() * 900 + 100);
-                document.getElementById('player-name').value = name;
-            }
-            if (!code) {
-                code = 'aegis101';
-                document.getElementById('room-code').value = code;
-            }
+            const name = document.getElementById('player-name').value.trim() || `항해관_${Math.floor(Math.random()*900+100)}`;
+            const code = document.getElementById('room-code').value.trim() || 'aegis101';
 
             currentUserName = name;
             currentRoomCode = code;
             myTeam = team;
 
-            const myMemberObj = { id: myPlayerId, name: currentUserName, joinedAt: Date.now(), lastSeen: Date.now() };
-            document.getElementById('lobby-status').innerText = "클라우드 전술망에 접속 중입니다...";
+            const myMemberObj = { id: myPlayerId, name: currentUserName, lastSeen: Date.now(), joinedAt: Date.now() };
+            document.getElementById('lobby-status').innerText = "사령부 레이더 통신망에 접속 중입니다...";
 
-            // 동일 PC 내 빠른 동기화를 위한 보조 BroadcastChannel
             try {
                 if (window.BroadcastChannel) {
                     if (bc) bc.close();
@@ -815,106 +697,144 @@
                     bc.onmessage = (event) => {
                         const msg = event.data;
                         if (!msg) return;
-                        if (msg.type === 'SYNC_STATE') {
-                            applyRoomState(msg.payload, false);
-                        }
+                        if (msg.type === 'SYNC_STATE') applyRoomState(msg.payload, false);
                     };
                 }
             } catch (e) {}
 
-            // Firestore 연동 및 실시간 리스너 시작
-            if (db) {
-                try {
-                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
+            let initialData = null;
+            try {
+                if (db) {
+                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
                     const snap = await getDoc(roomRef);
 
-                    let roomData = snap.exists() ? snap.data() : createInitialRoomData();
-
-                    // 다른 팀에 혹시 등록되어 있었다면 제거하고 현재 팀에 단일 등록 + 유령 대원(오프라인) 제거
-                    const filterOutMe = (list = []) => list.filter(m => (m.id !== myPlayerId && m.name !== currentUserName));
-                    roomData.blueMembers = normalizeMembers(filterOutMe(roomData.blueMembers));
-                    roomData.redMembers = normalizeMembers(filterOutMe(roomData.redMembers));
-
-                    if (team === 'blue') {
-                        roomData.blueMembers.push(myMemberObj);
+                    if (snap.exists()) {
+                        initialData = snap.data();
                     } else {
-                        roomData.redMembers.push(myMemberObj);
+                        initialData = createInitialRoomData();
                     }
 
-                    roomData.blueMembers = normalizeMembers(roomData.blueMembers);
-                    roomData.redMembers = normalizeMembers(roomData.redMembers);
-                    roomData.updatedAt = Date.now();
-
-                    await setDoc(roomRef, roomData, { merge: true });
-                    applyRoomState(roomData, true);
+                    if (team === 'blue') {
+                        initialData.blueMembers = mergeMembers(initialData.blueMembers, [myMemberObj]);
+                    } else {
+                        initialData.redMembers = mergeMembers(initialData.redMembers, [myMemberObj]);
+                    }
+                    initialData.updatedAt = Date.now();
+                    await setDoc(roomRef, initialData, { merge: true });
                     startFirestoreListener(roomRef);
-                    startHeartbeatLoop();
-                } catch (err) {
-                    console.error("Firestore 접속 오류:", err);
-                    alert("서버 연결 실패: " + err.message);
                 }
-            } else {
-                const localData = createInitialRoomData();
-                if (team === 'blue') localData.blueMembers = [myMemberObj];
-                else localData.redMembers = [myMemberObj];
-                applyRoomState(localData, true);
+            } catch (err) {
+                useFallback = true;
             }
+
+            if (!initialData || useFallback) {
+                initialData = createInitialRoomData();
+                if (team === 'blue') initialData.blueMembers = [myMemberObj];
+                else initialData.redMembers = [myMemberObj];
+            }
+
+            applyRoomState(initialData, true);
 
             document.getElementById('lobby-screen').classList.add('hidden');
             document.getElementById('battle-screen').classList.remove('hidden');
             
             initArcCanvas();
-            sfx.shieldDeploy();
+            sfx.radarPing();
+
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(sendHeartbeat, 4000);
+            window.addEventListener('beforeunload', leaveRoomCleanup);
         };
 
-        // 창을 닫거나 새로고침 시 방에서 본인을 자동으로 깔끔하게 제거
-        window.addEventListener('beforeunload', () => {
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-            if (db && currentRoomCode && myPlayerId && lastKnownRoomData) {
-                try {
-                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
-                    const updated = { ...lastKnownRoomData };
-                    const filterOutMe = (list = []) => (list || []).filter(m => m.id !== myPlayerId && m.name !== currentUserName);
-                    updated.blueMembers = filterOutMe(updated.blueMembers);
-                    updated.redMembers = filterOutMe(updated.redMembers);
-                    updated.updatedAt = Date.now();
-                    updateDoc(roomRef, updated);
-                } catch (e) {}
-            }
-        });
+        async function sendHeartbeat() {
+            if (!currentRoomCode || !myTeam) return;
+            const myMemberObj = { id: myPlayerId, name: currentUserName, lastSeen: Date.now(), joinedAt: Date.now() };
+            try {
+                if (db) {
+                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
+                    const snap = await getDoc(roomRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (myTeam === 'blue') data.blueMembers = mergeMembers(data.blueMembers, [myMemberObj]);
+                        else data.redMembers = mergeMembers(data.redMembers, [myMemberObj]);
+                        data.updatedAt = Date.now();
+                        await updateDoc(roomRef, data);
+                    }
+                }
+            } catch (e) {}
+        }
+
+        async function leaveRoomCleanup() {
+            if (!currentRoomCode || !myTeam) return;
+            try {
+                if (db) {
+                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
+                    const snap = await getDoc(roomRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (myTeam === 'blue') {
+                            data.blueMembers = (data.blueMembers || []).filter(m => (m.id || m.name) !== myPlayerId);
+                        } else {
+                            data.redMembers = (data.redMembers || []).filter(m => (m.id || m.name) !== myPlayerId);
+                        }
+                        data.updatedAt = Date.now();
+                        await setDoc(roomRef, data, { merge: true });
+                    }
+                }
+            } catch (e) {}
+        }
+
+        window.resetCurrentRoomData = async function() {
+            const code = currentRoomCode || document.getElementById('room-code').value.trim() || 'aegis101';
+            const fresh = createInitialRoomData();
+            const myMemberObj = { id: myPlayerId, name: currentUserName || '항해관', lastSeen: Date.now(), joinedAt: Date.now() };
+            if (myTeam === 'blue') fresh.blueMembers = [myMemberObj];
+            else if (myTeam === 'red') fresh.redMembers = [myMemberObj];
+
+            try {
+                if (db) {
+                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), code);
+                    await setDoc(roomRef, fresh);
+                }
+            } catch (e) {}
+            applyRoomState(fresh, true);
+            showCustomModal("초기화 완료", "배틀룸 대원 명단과 웨이브 데이터가 깨끗하게 리셋되었습니다!");
+        };
 
         function startFirestoreListener(roomRef) {
             if (unsubscribeRoom) unsubscribeRoom();
             unsubscribeRoom = onSnapshot(roomRef, (snap) => {
                 if (!snap.exists()) return;
                 applyRoomState(snap.data(), false);
-            }, (err) => {
-                console.error("Firestore Listener error:", err);
-            });
+            }, () => { useFallback = true; });
         }
 
-        // Firestore 서버 데이터를 '단 하나의 진실의 원천'으로 신뢰하여 화면에 반영
         function applyRoomState(data, broadcastEcho = false) {
             if (!data) return;
 
-            // 로컬 데이터와 누적 merge하던 버그를 제거하고 서버의 정규화된 목록을 그대로 채택!
-            data.blueMembers = normalizeMembers(data.blueMembers || []);
-            data.redMembers = normalizeMembers(data.redMembers || []);
+            if (lastKnownRoomData) {
+                data.blueMembers = mergeMembers(lastKnownRoomData.blueMembers, data.blueMembers);
+                data.redMembers = mergeMembers(lastKnownRoomData.redMembers, data.redMembers);
+            } else {
+                data.blueMembers = mergeMembers([], data.blueMembers);
+                data.redMembers = mergeMembers([], data.redMembers);
+            }
 
             lastKnownRoomData = data;
 
-            // Trigger Counter Laser and Shield Blast Animation
-            if (data.lastLaser && (!window.lastObservedLaserId || window.lastObservedLaserId !== data.lastLaser.id)) {
-                window.lastObservedLaserId = data.lastLaser.id;
-                triggerCounterLaserAnimation(
-                    data.lastLaser.team, 
-                    data.lastLaser.mission, 
-                    data.lastLaser.tacticalType || 'reflect', 
-                    data.lastLaser.isFever || false
-                );
+            // Trigger Launch Animation
+            if (data.lastLaunch && (!window.lastObservedLaunchId || window.lastObservedLaunchId !== data.lastLaunch.id)) {
+                window.lastObservedLaunchId = data.lastLaunch.id;
+                triggerShieldLaunch(data.lastLaunch.team, data.lastLaunch.angle, data.lastLaunch.tacticalType);
             }
 
-            // Tactical Ping Event
+            // Trigger Defense Success Explosion
+            if (data.lastDefense && (!window.lastObservedDefId || window.lastObservedDefId !== data.lastDefense.id)) {
+                window.lastObservedDefId = data.lastDefense.id;
+                triggerDefenseSuccessAnim(data.lastDefense.team);
+            }
+
+            // Trigger Tactical Ping
             if (data.lastPing && (!window.lastObservedPingId || window.lastObservedPingId !== data.lastPing.id)) {
                 window.lastObservedPingId = data.lastPing.id;
                 if (data.lastPing.team === myTeam) {
@@ -922,128 +842,118 @@
                 }
             }
 
-            // Cosmic Dust EMP detection
-            if (data.dustTarget === myTeam && (!window.lastObservedDustId || window.lastObservedDustId !== data.dustId)) {
-                window.lastObservedDustId = data.dustId;
+            // Trigger EMP Dust Cover
+            if (data.smokeTarget === myTeam && (!window.lastObservedSmokeId || window.lastObservedSmokeId !== data.smokeId)) {
+                window.lastObservedSmokeId = data.smokeId;
                 activateDustCover();
             }
 
-            updateDefenseHUD(data.blueDefense, data.redDefense);
+            updateCoresHUD(data.blueScore, data.redScore);
 
-            const bNames = (data.blueMembers || []).map(m => m.name || m);
-            const rNames = (data.redMembers || []).map(m => m.name || m);
-            document.getElementById('blue-members').innerText = `대원(${bNames.length}명): ${bNames.join(', ') || '대기 중'}`;
-            document.getElementById('red-members').innerText = `대원(${rNames.length}명): ${rNames.join(', ') || '대기 중'}`;
+            const bMembers = (data.blueMembers || []).map(m => m.name || m);
+            const rMembers = (data.redMembers || []).map(m => m.name || m);
+            document.getElementById('blue-members').innerText = `대원(${bMembers.length}명): ${bMembers.join(', ') || '대기 중'}`;
+            document.getElementById('red-members').innerText = `대원(${rMembers.length}명): ${rMembers.join(', ') || '대기 중'}`;
 
             updatePipelineUI(data);
 
-            if ((data.blueDefense >= 5 || data.redDefense >= 5) && !battleEnded) {
+            if ((data.blueScore >= 5 || data.redScore >= 5) && !battleEnded) {
                 battleEnded = true;
-                const winnerTeam = data.blueDefense >= 5 ? 'blue' : 'red';
+                const winnerTeam = data.blueScore >= 5 ? 'blue' : 'red';
                 triggerGrandVictory(winnerTeam, data);
             }
 
             if (broadcastEcho && bc) {
-                try {
-                    bc.postMessage({ type: 'SYNC_STATE', payload: data });
-                } catch (e) {}
+                try { bc.postMessage({ type: 'SYNC_STATE', payload: data }); } catch (e) {}
             }
         }
 
         async function syncStateUpdate(nextData) {
             applyRoomState(nextData, true);
-            if (db) {
+            if (!useFallback && db) {
                 try {
-                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
+                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
                     await updateDoc(roomRef, nextData);
-                } catch (e) {
-                    console.error("Firestore update error:", e);
-                }
+                } catch (e) { useFallback = true; }
             }
         }
 
-        function updateDefenseHUD(blueDefense = 0, redDefense = 0) {
-            const bDef = Math.min(5, Math.max(0, blueDefense));
-            const rDef = Math.min(5, Math.max(0, redDefense));
+        function updateCoresHUD(blueScore, redScore) {
+            const bScore = Math.min(5, Math.max(0, blueScore || 0));
+            const rScore = Math.min(5, Math.max(0, redScore || 0));
 
-            document.getElementById('blue-defense-count').innerText = bDef;
-            document.getElementById('red-defense-count').innerText = rDef;
+            document.getElementById('blue-score').innerText = bScore;
+            document.getElementById('red-score').innerText = rScore;
 
-            const bIcons = document.getElementById('blue-defense-icons');
+            const bIcons = document.getElementById('blue-shields-icons');
             bIcons.innerHTML = '';
             for (let i = 0; i < 5; i++) {
-                bIcons.innerHTML += (i < bDef) ? '<span>⚡</span>' : '<span class="opacity-30">🛡️</span>';
+                bIcons.innerHTML += (i < bScore) ? '<span>🛡️</span>' : '<span class="opacity-30 grayscale">⚪</span>';
             }
 
-            const rIcons = document.getElementById('red-defense-icons');
+            const rIcons = document.getElementById('red-shields-icons');
             rIcons.innerHTML = '';
             for (let i = 0; i < 5; i++) {
-                rIcons.innerHTML += (i < rDef) ? '<span>⚡</span>' : '<span class="opacity-30">🛡️</span>';
+                rIcons.innerHTML += (i < rScore) ? '<span>🛡️</span>' : '<span class="opacity-30 grayscale">⚪</span>';
             }
         }
 
         function updatePipelineUI(data) {
             const team = myTeam;
-            const myMembers = team === 'blue' ? (data.blueMembers || []) : (data.redMembers || []);
+            const myRawMembers = team === 'blue' ? (data.blueMembers || []) : (data.redMembers || []);
+            const myMembers = mergeMembers([], myRawMembers);
             const currentStage = team === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
             const currentMission = team === 'blue' ? data.blueMission : data.redMission;
-            const problemCount = team === 'blue' ? (data.blueProblemCount || 1) : (data.redProblemCount || 1);
+            const waveIndex = team === 'blue' ? (data.blueWave || 1) : (data.redWave || 1);
+            const hasHeatShield = team === 'blue' ? data.blueHeatShield : data.redHeatShield;
 
             if (!currentMission) return;
 
-            document.getElementById('current-threat-name').innerText = `메테오 폭격 #${problemCount}`;
+            document.getElementById('current-meteor-name').innerText = `메테오 폭격 #${waveIndex}`;
 
             const clueDisplay = document.getElementById('mission-clue-display');
             if (currentStage === 0) {
-                clueDisplay.innerText = `【위협 포착】 ${currentMission.step0Clue}`;
+                clueDisplay.innerText = currentMission.fullClue;
             } else if (currentStage === 1) {
-                clueDisplay.innerText = `【중심각 x = ${currentMission.x}° 전개 완료】 ${currentMission.step1Clue}`;
+                clueDisplay.innerText = `【중심각 ${currentMission.angle}° 락온】 호의 길이 공식 l = 2πr × (x/360)에 대입하여 계산하라!`;
             } else if (currentStage === 2) {
-                clueDisplay.innerText = `【호의 길이 l = ${currentMission.arcCoef}π 궤적 락온】 ${currentMission.step2Clue}`;
+                clueDisplay.innerText = `【호의 길이 산출 완료】 부채꼴 넓이 공식 S = πr²(x/360) 또는 S = (1/2)lr 로 전체 넓이 압축!`;
             } else {
-                clueDisplay.innerText = `【부채꼴 에너지 완전 압축: S = ${currentMission.areaCoef}π】 에이지스 아크 방어막을 전개하여 폭격을 튕겨내고 반격하세요!`;
+                clueDisplay.innerText = `【최종 방어각 ${currentMission.angle}° 락온 완료!】 전술 모듈을 선택하고 쉴드를 격발하세요!`;
             }
 
-            const angleHud = document.getElementById('arc-hud-angle');
-            if (angleHud) {
-                angleHud.innerText = `중심각 ${currentMission.x}° (${currentMission.startAngle}° ~ ${currentMission.endAngle}°)`;
-            }
+            document.getElementById('defense-angle-label').innerText = `중심각 ${currentMission.angle}°`;
 
-            const heatShieldBadge = document.getElementById('heat-shield-badge');
-            const hasShield = team === 'blue' ? data.blueHeatShield : data.redHeatShield;
-            if (heatShieldBadge) {
-                if (hasShield) {
-                    heatShieldBadge.classList.remove('hidden');
-                } else {
-                    heatShieldBadge.classList.add('hidden');
-                }
-            }
+            // Heat Shield Badge Toggle
+            const heatBadge = document.getElementById('heat-shield-badge');
+            if (hasHeatShield) heatBadge.classList.remove('hidden');
+            else heatBadge.classList.add('hidden');
 
             const teamBadge = document.getElementById('my-team-badge');
             if (team === 'blue') {
-                teamBadge.innerText = `🔵 청군 블루 아크 [웨이브 #${problemCount}]`;
+                teamBadge.innerText = `🔵 청군 블루 아크 [웨이브 #${waveIndex}]`;
                 teamBadge.className = 'text-xs px-3.5 py-1.5 bg-cyan-500/25 text-cyan-300 border border-cyan-400 rounded-full font-bold';
             } else {
-                teamBadge.innerText = `🔴 홍군 레드 이지스 [웨이브 #${problemCount}]`;
+                teamBadge.innerText = `🔴 홍군 레드 이지스 [웨이브 #${waveIndex}]`;
                 teamBadge.className = 'text-xs px-3.5 py-1.5 bg-rose-500/25 text-rose-300 border border-rose-400 rounded-full font-bold';
             }
 
             const teamSize = Math.max(1, myMembers.length);
             const myIndex = myMembers.findIndex(m => m.id === myPlayerId || m.name === currentUserName);
-            const activeMemberIndex = getStageActorIndex(currentStage, teamSize, problemCount);
+            const activeMemberIndex = getStageActorIndex(currentStage, teamSize, waveIndex);
             const activeMemberObj = myMembers[activeMemberIndex];
             const activeMemberName = activeMemberObj ? activeMemberObj.name : `${activeMemberIndex + 1}번 대원`;
 
             const isMyTurn = (myIndex !== -1) && (myIndex === activeMemberIndex);
 
             if (isMyTurn && !prevWasMyTurn) {
-                sfx.shieldDeploy();
+                sfx.radarPing();
             }
             prevWasMyTurn = isMyTurn;
 
             const roleBadge = document.getElementById('my-role-badge');
             if (myIndex !== -1) {
-                roleBadge.innerText = `내 포지션: ${getRoleDescription(myIndex, teamSize, problemCount)}`;
+                roleBadge.innerText = `내 포지션: ${getRoleDescription(myIndex, teamSize, waveIndex)}`;
                 roleBadge.className = isMyTurn 
                     ? 'text-xs px-3.5 py-1.5 bg-yellow-400 text-slate-950 border-2 border-yellow-300 rounded-full font-arc animate-pulse'
                     : 'text-xs px-3.5 py-1.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-full font-bold';
@@ -1053,63 +963,51 @@
 
             const instEl = document.getElementById('step-instruction');
             const numControls = document.getElementById('number-input-control');
-            const deployControls = document.getElementById('shield-deploy-control');
+            const tacticalControls = document.getElementById('tactical-launch-control');
             const waitingNotice = document.getElementById('waiting-notice');
             const currentActorEl = document.getElementById('current-actor-name');
             const stepNumInput = document.getElementById('step-number-input');
-            const piUnitLabel = document.getElementById('pi-unit-label');
 
             if (currentStage === 0) {
-                instEl.innerText = "【1단계: 중심각 x° 분석】 위협 힌트를 바탕으로 부채꼴의 중심각 크기(x°) 숫자를 입력하세요!";
-                piUnitLabel.classList.add('hidden');
-                stepNumInput.placeholder = "중심각 크기 (예: 60)";
+                instEl.innerText = "【1단계: 중심각 분석】 위협 힌트를 보고 부채꼴의 중심각 x° 숫자를 입력하세요!";
             } else if (currentStage === 1) {
-                instEl.innerText = "【2단계: 호(Arc) 궤적 유도】 공식 l = 2πr × (x/360)을 계산하여 원주율 π 앞의 계수 숫자를 입력하세요!";
-                piUnitLabel.classList.remove('hidden');
-                stepNumInput.placeholder = "π 앞의 계수 숫자";
+                instEl.innerText = "【2단계: 호의 길이 유도】 중심각과 반지름으로 유도된 호의 길이 공식의 π 앞 계수를 입력하세요!";
             } else if (currentStage === 2) {
-                instEl.innerText = "【3단계: 넓이 에너지 압축】 공식 S = 1/2 lr 또는 πr² × (x/360)을 계산하여 π 앞의 계수 숫자를 입력하세요!";
-                piUnitLabel.classList.remove('hidden');
-                stepNumInput.placeholder = "π 앞의 계수 숫자";
-            } else if (currentStage === 3) {
-                instEl.innerText = "【4단계: 쉴드 전개 & 카운터 포격】 방어막 압축 완료! 버튼을 터치하여 폭격을 튕겨내고 반격 레이저를 쏘세요!";
+                instEl.innerText = "【3단계: 면적 압축】 부채꼴의 넓이(S) 공식 계산 결과 값(π 앞의 숫자 계수)을 입력하세요!";
+            } else {
+                instEl.innerText = "【4단계: 쉴드 격발】 최종 방어 에너지가 압축되었습니다! 전술 모듈을 선택하세요!";
             }
 
             if (isMyTurn) {
                 waitingNotice.classList.add('hidden');
-                if (currentStage <= 2) {
-                    deployControls.classList.add('hidden');
+                if (currentStage === 3) {
+                    numControls.classList.add('hidden');
+                    tacticalControls.classList.remove('hidden');
+                } else {
+                    tacticalControls.classList.add('hidden');
                     numControls.classList.remove('hidden');
                     stepNumInput.disabled = false;
                     stepNumInput.value = '';
+                    stepNumInput.placeholder = currentStage === 0 ? "중심각 x° 입력" : (currentStage === 1 ? "호의 길이 계수 입력" : "넓이 계수 입력");
                     stepNumInput.focus();
-                    closeTacticalModal();
-                } else {
-                    numControls.classList.add('hidden');
-                    deployControls.classList.remove('hidden');
-                    if (!window.tacticalModalAutoOpened) {
-                        window.tacticalModalAutoOpened = true;
-                        openTacticalModal();
-                    }
                 }
             } else {
                 numControls.classList.add('hidden');
-                deployControls.classList.add('hidden');
+                tacticalControls.classList.add('hidden');
                 waitingNotice.classList.remove('hidden');
                 currentActorEl.innerText = `${activeMemberName} (${activeMemberIndex + 1}번 대원)`;
-                closeTacticalModal();
             }
 
             const stageTitles = [
-                "① 중심각/비례 분석",
-                "② 호(Arc) 궤적선",
-                "③ 부채꼴 넓이 압축",
-                "④ 쉴드 전개 & 반격 🚀"
+                "① 중심각 분석",
+                "② 호의 길이 유도",
+                "③ 면적 압축",
+                "④ 쉴드 격발 🚀"
             ];
 
             for (let s = 0; s < 4; s++) {
                 const card = document.getElementById(`stage-card-${s}`);
-                const stageActorIdx = getStageActorIndex(s, teamSize, problemCount);
+                const stageActorIdx = getStageActorIndex(s, teamSize, waveIndex);
                 const stageActorObj = myMembers[stageActorIdx];
                 const stageActorName = stageActorObj ? stageActorObj.name : `${stageActorIdx + 1}번 대원`;
                 const isThisMine = (myIndex === stageActorIdx);
@@ -1120,21 +1018,21 @@
                 if (s === currentStage) {
                     card.className = "p-2.5 rounded-xl border-2 transition-all bg-yellow-400/20 border-yellow-300 text-yellow-300 font-bold animate-pulse shadow-lg";
                 } else if (s < currentStage) {
-                    card.className = "p-2.5 rounded-xl border transition-all bg-cyan-950/60 border-cyan-500/60 text-cyan-300 font-semibold";
+                    card.className = "p-2.5 rounded-xl border transition-all bg-emerald-950/60 border-emerald-500/60 text-emerald-300 font-semibold";
                 } else {
                     card.className = "p-2.5 rounded-xl border transition-all bg-slate-950/60 border-slate-800 text-slate-500";
                 }
             }
         }
 
-        window.submitStep = async function() {
+        window.submitArcStep = async function() {
             if (isLockedOut) return;
             if (!lastKnownRoomData) return;
             const inputEl = document.getElementById('step-number-input');
             const val = parseFloat(inputEl.value.trim());
 
             if (isNaN(val)) {
-                showStepFeedback("숫자를 입력해 주세요!", true);
+                showStepFeedback("정답 숫자를 입력해 주세요!", true);
                 sfx.error();
                 return;
             }
@@ -1142,183 +1040,119 @@
             const data = lastKnownRoomData;
             const currentStage = myTeam === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
             const mission = myTeam === 'blue' ? data.blueMission : data.redMission;
+            const hasHeatShield = myTeam === 'blue' ? data.blueHeatShield : data.redHeatShield;
 
-            if (currentStage === 0) {
-                if (val === mission.x) {
-                    sfx.success();
+            let expected = null;
+            if (currentStage === 0) expected = mission.angle;
+            else if (currentStage === 1) expected = mission.arcNum;
+            else if (currentStage === 2) expected = mission.areaNum;
+
+            if (val === expected) {
+                sfx.success();
+                const nextData = { ...data };
+                if (myTeam === 'blue') nextData.blueStage = currentStage + 1;
+                else nextData.redStage = currentStage + 1;
+
+                showStepFeedback(`✨ [${currentStage + 1}단계 락온 성공!] 완벽한 연산입니다! 다음 단계로 전진합니다.`, false);
+                nextData.updatedAt = Date.now();
+                await syncStateUpdate(nextData);
+            } else {
+                // If heat shield is active, consume it and exempt penalty!
+                if (hasHeatShield) {
                     const nextData = { ...data };
-                    if (myTeam === 'blue') {
-                        nextData.blueStage = 1;
-                        nextData.blueShieldVisual.angleSet = true;
-                    } else {
-                        nextData.redStage = 1;
-                        nextData.redShieldVisual.angleSet = true;
-                    }
-                    showStepFeedback(`✨ [중심각 x = ${val}° 락온 완료!] 부채꼴 각도선 전개! 2번 대원 호의 길이(l) 유도 개시!`, false);
-                    nextData.updatedAt = Date.now();
+                    if (myTeam === 'blue') nextData.blueHeatShield = false;
+                    else nextData.redHeatShield = false;
                     await syncStateUpdate(nextData);
+
+                    triggerLockoutPenalty(true);
                 } else {
-                    showStepFeedback(`❌ 중심각 계산 오류! (찍기 방지 5초 실드 과열 잠금)`, true);
-                    triggerLockoutPenalty();
-                }
-            } else if (currentStage === 1) {
-                if (val === mission.arcCoef) {
-                    sfx.success();
-                    const nextData = { ...data };
-                    if (myTeam === 'blue') {
-                        nextData.blueStage = 2;
-                        nextData.blueShieldVisual.arcSet = true;
-                    } else {
-                        nextData.redStage = 2;
-                        nextData.redShieldVisual.arcSet = true;
-                    }
-                    showStepFeedback(`✨ [호의 길이 l = ${val}π 고정 완료!] 원호 경계선 활성화! 3번 대원 부채꼴 넓이(S) 압축 개시!`, false);
-                    nextData.updatedAt = Date.now();
-                    await syncStateUpdate(nextData);
-                } else {
-                    showStepFeedback(`❌ 호의 길이 계산 오류! l = 2πr × (x/360) (5초 실드 과열 잠금)`, true);
-                    triggerLockoutPenalty();
-                }
-            } else if (currentStage === 2) {
-                if (val === mission.areaCoef) {
-                    sfx.success();
-                    const nextData = { ...data };
-                    if (myTeam === 'blue') {
-                        nextData.blueStage = 3;
-                        nextData.blueShieldVisual.areaSet = true;
-                    } else {
-                        nextData.redStage = 3;
-                        nextData.redShieldVisual.areaSet = true;
-                    }
-                    
-                    if (mistakesOnCurrentWave === 0) {
-                        isHyperFeverActive = true;
-                        sfx.victoryFanfare();
-                        showStepFeedback("⚡ [HYPER FEVER ACTIVATED!] 무결점 연산 성공! 황금 에이지스 아크 전개 준비 완료!", false);
-                    } else {
-                        showStepFeedback(`✨ [넓이 S = ${val}π 에너지 압축 완료!] 4번 대원 에이지스 아크를 전개하여 반격하세요!`, false);
-                    }
-                    nextData.updatedAt = Date.now();
-                    await syncStateUpdate(nextData);
-                } else {
-                    showStepFeedback(`❌ 넓이 계산 오류! S = 1/2 lr = πr² × (x/360) (5초 실드 과열 잠금)`, true);
-                    triggerLockoutPenalty();
+                    showStepFeedback("❌ 부채꼴 공식 연산 오류! (찍기 방지 5초 쉴드 콘솔 잠금)", true);
+                    triggerLockoutPenalty(false);
                 }
             }
         };
 
         window.openTacticalModal = function() {
-            if (isLockedOut) return;
-            const modal = document.getElementById('tactical-select-modal');
-            if (modal) {
-                const bonusEl = document.getElementById('tactical-fever-bonus');
-                if (bonusEl) {
-                    if (isHyperFeverActive) {
-                        bonusEl.innerText = "⚡ [HYPER FEVER!] 무결점 연산 달성! 황금 카운터 빔포와 슈퍼 전술 효과 발동!";
-                        bonusEl.className = "text-xs font-bold text-yellow-300 animate-pulse";
-                    } else {
-                        bonusEl.innerText = "선택한 전술 카드의 고유 효과가 레이저와 함께 즉시 발동됩니다.";
-                        bonusEl.className = "text-xs font-bold text-cyan-300";
-                    }
-                }
-                modal.classList.remove('hidden');
-            }
+            document.getElementById('tactical-select-modal').classList.remove('hidden');
         };
 
-        window.closeTacticalModal = function() {
-            const modal = document.getElementById('tactical-select-modal');
-            if (modal) modal.classList.add('hidden');
-        };
-
-        window.deployShieldStep = function() {
-            openTacticalModal();
-        };
-
-        window.chooseTacticalModule = async function(tacticalType = 'reflect') {
-            closeTacticalModal();
-            if (isLockedOut) return;
+        window.chooseTacticalModule = async function(tacticalType) {
+            document.getElementById('tactical-select-modal').classList.add('hidden');
             if (!lastKnownRoomData) return;
             const data = lastKnownRoomData;
-            const currentStage = myTeam === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
             const mission = myTeam === 'blue' ? data.blueMission : data.redMission;
 
-            if (currentStage !== 3) return;
-
-            window.tacticalModalAutoOpened = false;
-
-            let feedbackMsg = "";
-            let transitionDelay = 1400;
-
-            if (tacticalType === 'emp') {
-                sfx.counterLaser();
-                feedbackMsg = "🌪️ [우주 먼지 EMP 살포!] 적 기지 레이더를 전자기 안개로 뒤덮었습니다! (상대 조작 마비)";
-                transitionDelay = 1400;
-            } else if (tacticalType === 'harvest') {
-                // 에너지 하베스트는 빔을 쏘지 않고 폭격을 흡수하는 전용 쉴드 효과음과 보호막 형성!
-                sfx.shieldDeploy();
-                feedbackMsg = "🛡️ [에너지 하베스트 흡수!] 폭격을 흡수하여 코어에 황금 방열 실드를 장착했습니다! (다음 웨이브 오답 5초 잠금 1회 면제!)";
-                transitionDelay = 1200;
-            } else {
-                sfx.counterLaser();
-                feedbackMsg = "⚡ [메가 리플렉트 초광속 돌파!] 딜레이 없이 즉시 다음 웨이브로 진격합니다!";
-                transitionDelay = 500;
-            }
-            showStepFeedback(feedbackMsg, false);
+            sfx.shieldDeploy();
+            showStepFeedback("🚀 에이지스 방어막 격발 완료! 카운터 레이저가 발사됩니다!", false);
 
             const nextData = { ...data };
             const enemyTeam = myTeam === 'blue' ? 'red' : 'blue';
 
-            nextData.lastLaser = {
-                team: myTeam,
-                mission: mission,
-                tacticalType: tacticalType,
-                isFever: isHyperFeverActive,
-                id: Date.now() + Math.random()
+            nextData.lastLaunch = { 
+                team: myTeam, 
+                angle: mission.angle, 
+                tacticalType: tacticalType, 
+                id: Date.now() 
             };
 
             if (tacticalType === 'emp') {
-                nextData.dustTarget = enemyTeam;
-                nextData.dustId = Date.now();
+                nextData.smokeTarget = enemyTeam;
+                nextData.smokeId = Date.now();
+            } else if (tacticalType === 'harvest') {
+                if (myTeam === 'blue') nextData.blueHeatShield = true;
+                else nextData.redHeatShield = true;
             }
 
             setTimeout(async () => {
                 const latest = lastKnownRoomData || nextData;
-                const hitData = { ...latest };
+                const defData = { ...latest };
                 
                 if (myTeam === 'blue') {
-                    hitData.blueDefense = Math.min(5, (hitData.blueDefense || 0) + 1);
-                    const nextProbCount = (hitData.blueProblemCount || 1) + 1;
-                    hitData.blueStage = 0;
-                    hitData.blueProblemCount = nextProbCount;
-                    hitData.blueMission = generateSectorMission(nextProbCount);
-                    hitData.blueShieldVisual = { angleSet: false, arcSet: false, areaSet: false, deployed: false };
-                    if (tacticalType === 'harvest') hitData.blueHeatShield = true;
+                    defData.blueScore = Math.min(5, (defData.blueScore || 0) + 1);
                 } else {
-                    hitData.redDefense = Math.min(5, (hitData.redDefense || 0) + 1);
-                    const nextProbCount = (hitData.redProblemCount || 1) + 1;
-                    hitData.redStage = 0;
-                    hitData.redProblemCount = nextProbCount;
-                    hitData.redMission = generateSectorMission(nextProbCount);
-                    hitData.redShieldVisual = { angleSet: false, arcSet: false, areaSet: false, deployed: false };
-                    if (tacticalType === 'harvest') hitData.redHeatShield = true;
+                    defData.redScore = Math.min(5, (defData.redScore || 0) + 1);
                 }
 
-                isHyperFeverActive = false;
-                mistakesOnCurrentWave = 0;
+                defData.lastDefense = { team: myTeam, id: Date.now() };
 
-                if (tacticalType === 'harvest') {
-                    sfx.shieldDeploy();
-                    showStepFeedback("🛡️ [방열 실드 장착 완료!] 코어에 황금 보호막이 활성화되었습니다! (다음 웨이브 오답 1회 면제)", false);
+                const nextWave = (myTeam === 'blue' ? (defData.blueWave || 1) : (defData.redWave || 1)) + 1;
+                const nextMission = generateArcMission(nextWave);
+
+                if (myTeam === 'blue') {
+                    defData.blueStage = 0;
+                    defData.blueWave = nextWave;
+                    defData.blueMission = nextMission;
                 } else {
-                    sfx.explosion();
-                    showStepFeedback("💥 [웨이브 요격 성공!] 방어막 완충 완료! 다음 위협 각도로 코어를 회전합니다! (역할 자동 순환)", false);
+                    defData.redStage = 0;
+                    defData.redWave = nextWave;
+                    defData.redMission = nextMission;
                 }
-                hitData.updatedAt = Date.now();
-                await syncStateUpdate(hitData);
-            }, transitionDelay);
+
+                sfx.success();
+                showStepFeedback("✨ [메테오 완벽 방어 성공!] 다음 웨이브로 즉시 진입합니다! (역할 자동 순환)", false);
+                defData.updatedAt = Date.now();
+                await syncStateUpdate(defData);
+            }, tacticalType === 'reflect' ? 850 : 1300);
 
             nextData.updatedAt = Date.now();
             await syncStateUpdate(nextData);
+        };
+
+        function activateDustCover() {
+            window.dustWipesRemaining = 5;
+            document.getElementById('dust-wipe-count').innerText = window.dustWipesRemaining;
+            document.getElementById('emp-dust-overlay').classList.remove('hidden');
+            sfx.error();
+        }
+
+        window.wipeDust = function() {
+            window.dustWipesRemaining--;
+            document.getElementById('dust-wipe-count').innerText = window.dustWipesRemaining;
+            sfx.playTone(400, 'triangle', 0.1, 0.15);
+            if (window.dustWipesRemaining <= 0) {
+                document.getElementById('emp-dust-overlay').classList.add('hidden');
+                sfx.success();
+            }
         };
 
         function showStepFeedback(text, isError) {
@@ -1326,11 +1160,11 @@
             el.innerText = text;
             el.className = isError 
                 ? "text-sm font-bold text-rose-400 min-h-[24px] mt-3 animate-pulse" 
-                : "text-sm font-bold text-cyan-400 min-h-[24px] mt-3";
+                : "text-sm font-bold text-emerald-400 min-h-[24px] mt-3";
         }
 
         window.sendQuickCheer = function(text) {
-            showStepFeedback(`📻 [아크 무전] ${text}`, false);
+            showStepFeedback(`📻 [사령부 무전] ${text}`, false);
             sfx.playTone(550, 'sine', 0.12, 0.2);
         };
 
@@ -1347,12 +1181,12 @@
         function triggerGrandVictory(winnerTeam, roomData) {
             sfx.victoryFanfare();
             const isBlueWin = winnerTeam === 'blue';
-            const winnerName = isBlueWin ? "🔵 청군 코어 (블루 아크)" : "🔴 홍군 코어 (레드 이지스)";
+            const winnerName = isBlueWin ? "🔵 청군 코어 (블루 아크)" : "🔴 홍군 이지스 코어";
             const rawMembers = isBlueWin ? roomData.blueMembers : roomData.redMembers;
             const members = (rawMembers || []).map(m => m.name || m);
 
             document.getElementById('victory-team-title').innerText = `${winnerName} 대승리!`;
-            document.getElementById('victory-members-list').innerText = members.length > 0 ? members.join(', ') : '단독 아크 수호관';
+            document.getElementById('victory-members-list').innerText = members.length > 0 ? members.join(', ') : '단독 항해관';
             document.getElementById('victory-total-time').innerText = `${((Date.now() - missionStartTime) / 1000).toFixed(1)}초`;
 
             setTimeout(() => {
@@ -1361,13 +1195,10 @@
         }
 
         let canvas, ctx;
-        let radarSweep = 0;
-        let nebulaTime = 0;
+        let radarSweepAngle = 0;
         let tacticalPings = [];
-        let laserProjectiles = [];
+        let shieldBeams = [];
         let explosions = [];
-        let shockwaves = [];
-        let stars = [];
 
         function initArcCanvas() {
             canvas = document.getElementById('arc-canvas');
@@ -1375,19 +1206,6 @@
             resizeArcCanvas();
             window.addEventListener('resize', resizeArcCanvas);
 
-            // Generate initial stars
-            stars = [];
-            for (let i = 0; i < 60; i++) {
-                stars.push({
-                    x: Math.random(),
-                    y: Math.random(),
-                    radius: Math.random() * 1.5 + 0.5,
-                    alpha: Math.random() * 0.8 + 0.2,
-                    speed: Math.random() * 0.02 + 0.005
-                });
-            }
-
-            // Canvas touch ping
             canvas.addEventListener('click', handleCanvasPing);
             canvas.addEventListener('touchstart', (e) => {
                 if (e.touches && e.touches[0]) {
@@ -1397,7 +1215,7 @@
                 }
             });
 
-            requestAnimationFrame(renderArcLoop);
+            requestAnimationFrame(renderRadarLoop);
         }
 
         function resizeArcCanvas() {
@@ -1414,118 +1232,62 @@
         function triggerPingFromCanvas(canvasX, canvasY) {
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
-            const angleRad = Math.atan2(canvasY - cy, canvasX - cx);
-            let angleDeg = Math.round((angleRad * 180 / Math.PI));
-            if (angleDeg < 0) angleDeg += 360;
+            const dx = canvasX - cx;
+            const dy = cy - canvasY; // invert y for math angle
+            let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+            if (angle < 0) angle += 360;
 
-            sfx.tacticalPing();
-            addTacticalPing(angleDeg, currentUserName || '대원');
+            sfx.radarPing();
+            addTacticalPing(Math.round(angle), currentUserName || '항해관');
 
             if (lastKnownRoomData) {
                 const pingData = { ...lastKnownRoomData };
                 pingData.lastPing = {
                     team: myTeam,
-                    angle: angleDeg,
-                    sender: currentUserName || '대원',
+                    angle: Math.round(angle),
+                    sender: currentUserName || '항해관',
                     id: Date.now() + Math.random()
                 };
                 syncStateUpdate(pingData);
             }
         }
 
-        function addTacticalPing(angleDeg, sender) {
+        function addTacticalPing(angle, sender) {
             tacticalPings.push({
-                angle: angleDeg,
+                angle: angle,
                 sender: sender,
-                radius: 20,
+                radius: 12,
+                maxRadius: 55,
                 alpha: 1
             });
         }
 
-        function triggerCounterLaserAnimation(team, mission, tacticalType = 'reflect', isFever = false) {
-            const midAngle = (mission.startAngle + mission.x / 2) * Math.PI / 180;
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            const maxR = Math.min(canvas.width, canvas.height) * 0.44;
-
-            if (tacticalType === 'harvest') {
-                // 에너지 하베스트: 빔을 쏘지 않고 거대한 황금 쉴드 돔으로 메테오를 흡수하는 연출!
-                shockwaves.push({
-                    x: cx,
-                    y: cy,
-                    radius: 20,
-                    maxRadius: maxR * 1.3,
-                    color: '#facc15',
-                    alpha: 1
-                });
-                shockwaves.push({
-                    x: cx,
-                    y: cy,
-                    radius: 10,
-                    maxRadius: maxR * 0.9,
-                    color: '#fbbf24',
-                    alpha: 1
-                });
-
-                const meteorX = cx + Math.cos(midAngle) * maxR * 0.88;
-                const meteorY = cy + Math.sin(midAngle) * maxR * 0.88;
-
-                // 흡수되어 코어로 빨려 들어가는 황금 에너지 파티클
-                for (let k = 0; k < 40; k++) {
-                    const sparkAngle = Math.random() * Math.PI * 2;
-                    const spd = Math.random() * 4 + 2;
-                    explosions.push({
-                        x: meteorX,
-                        y: meteorY,
-                        vx: -Math.cos(midAngle) * spd + (Math.random() - 0.5) * 2,
-                        vy: -Math.sin(midAngle) * spd + (Math.random() - 0.5) * 2,
-                        radius: Math.random() * 5 + 3,
-                        color: '#facc15',
-                        alpha: 1
-                    });
-                }
-                return; // 레이저 발사체 생성 건너뜀!
-            }
-
-            // 1. Shockwave from core outward
-            shockwaves.push({
-                x: cx,
-                y: cy,
-                radius: 18,
-                maxRadius: maxR * 1.1,
-                color: isFever ? '#facc15' : (team === 'blue' ? '#38bdf8' : '#fb7185'),
-                alpha: 1
-            });
-
-            // 2. Shatter the approaching meteor into fiery fragments
-            const meteorX = cx + Math.cos(midAngle) * maxR * 0.88;
-            const meteorY = cy + Math.sin(midAngle) * maxR * 0.88;
-
-            for (let k = 0; k < 35; k++) {
-                const sparkAngle = Math.random() * Math.PI * 2;
-                const spd = Math.random() * 6 + 2;
-                explosions.push({
-                    x: meteorX,
-                    y: meteorY,
-                    vx: Math.cos(sparkAngle) * spd,
-                    vy: Math.sin(sparkAngle) * spd,
-                    radius: Math.random() * 5 + 2,
-                    color: ['#f97316', '#eab308', '#ef4444', '#fde047'][Math.floor(Math.random() * 4)],
-                    alpha: 1
-                });
-            }
-
-            // 3. Counter Laser Projectile
-            laserProjectiles.push({
+        function triggerShieldLaunch(team, angle, tacticalType) {
+            shieldBeams.push({
                 team: team,
-                angle: midAngle,
-                tacticalType: tacticalType,
-                isFever: isFever,
+                angle: angle,
+                tacticalType: tacticalType || 'reflect',
                 progress: 0
             });
         }
 
-        function renderArcLoop() {
+        function triggerDefenseSuccessAnim(team) {
+            for (let i = 0; i < 40; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 2;
+                explosions.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 4 + 2,
+                    color: team === 'red' ? '#fb7185' : '#38bdf8',
+                    alpha: 1
+                });
+            }
+        }
+
+        function renderRadarLoop() {
             if (!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1535,347 +1297,86 @@
             const cy = h / 2;
             const maxR = Math.min(w, h) * 0.44;
 
-            nebulaTime += 0.015;
-
-            // 1. Starfield & Cosmic Nebula Background
+            // 1. Radar Circular Background
             ctx.save();
-            ctx.fillStyle = '#020b12';
+            ctx.fillStyle = '#010d14';
             ctx.beginPath();
             ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
             ctx.fill();
-
-            // Glowing Nebula gradient
-            const nebGrad = ctx.createRadialGradient(
-                cx + Math.cos(nebulaTime) * 30, cy + Math.sin(nebulaTime) * 30, 20,
-                cx, cy, maxR
-            );
-            nebGrad.addColorStop(0, 'rgba(30, 58, 138, 0.45)');
-            nebGrad.addColorStop(0.5, 'rgba(88, 28, 135, 0.25)');
-            nebGrad.addColorStop(1, 'rgba(2, 11, 18, 0.95)');
-            ctx.fillStyle = nebGrad;
-            ctx.beginPath();
-            ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Twinkling stars
-            stars.forEach(s => {
-                const sx = cx + (s.x - 0.5) * maxR * 1.8;
-                const sy = cy + (s.y - 0.5) * maxR * 1.8;
-                const dist = Math.hypot(sx - cx, sy - cy);
-                if (dist < maxR - 5) {
-                    s.alpha += Math.sin(nebulaTime * 2 + s.x * 10) * 0.02;
-                    ctx.fillStyle = `rgba(224, 242, 254, ${Math.max(0.1, Math.min(0.9, s.alpha))})`;
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, s.radius, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            });
-
-            ctx.strokeStyle = '#0284c7';
-            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#0e7490';
+            ctx.lineWidth = 3;
             ctx.stroke();
 
             // Concentric Range Rings
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+            ctx.strokeStyle = 'rgba(34, 211, 238, 0.22)';
             ctx.lineWidth = 1;
             for (let r = 1; r <= 4; r++) {
                 ctx.beginPath();
-                ctx.arc(cx, cy, (r / 4) * maxR, 0, Math.PI * 2);
+                ctx.arc(cx, cy, r * (maxR / 4), 0, Math.PI * 2);
                 ctx.stroke();
             }
 
-            // Degree lines every 30°
-            for (let deg = 0; deg < 360; deg += 30) {
-                const rad = (deg * Math.PI) / 180;
-                ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+            // Central Core Base Station
+            ctx.fillStyle = '#22d3ee';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Render Heat Shield Dome if active
+            const hasHeatShield = lastKnownRoomData ? (myTeam === 'blue' ? lastKnownRoomData.blueHeatShield : lastKnownRoomData.redHeatShield) : false;
+            if (hasHeatShield) {
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 3;
+                ctx.fillStyle = 'rgba(250, 204, 21, 0.22)';
                 ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(cx + Math.cos(rad) * maxR, cy + Math.sin(rad) * maxR);
+                ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.stroke();
 
-                ctx.font = 'bold 10px monospace';
-                ctx.fillStyle = 'rgba(125, 211, 252, 0.6)';
+                ctx.font = 'bold 10px font-arc, sans-serif';
+                ctx.fillStyle = '#fef08a';
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const labelX = cx + Math.cos(rad) * (maxR + 14);
-                const labelY = cy + Math.sin(rad) * (maxR + 14);
-                ctx.fillText(`${deg}°`, labelX, labelY);
+                ctx.fillText("🛡️ 방열 실드 활성", cx, cy - 35);
             }
 
-            // Rotating sweep scanner
-            radarSweep += 0.02;
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
-            ctx.lineWidth = 1.5;
+            // 2. Rotating Sonar Sweep Beam
+            radarSweepAngle += 0.02;
+            const sweepGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+            sweepGrad.addColorStop(0, 'rgba(34, 211, 238, 0.35)');
+            sweepGrad.addColorStop(1, 'rgba(34, 211, 238, 0.0)');
+            
+            ctx.save();
             ctx.beginPath();
             ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + Math.cos(radarSweep) * maxR, cy + Math.sin(radarSweep) * maxR);
-            ctx.stroke();
-
-            // Central Core Base with rotating aura ring
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(nebulaTime * 0.8);
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.beginPath();
-            ctx.arc(0, 0, 24, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.restore();
-
-            ctx.fillStyle = '#0369a1';
-            ctx.beginPath();
-            ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+            ctx.arc(cx, cy, maxR, radarSweepAngle - 0.3, radarSweepAngle);
+            ctx.closePath();
+            ctx.fillStyle = sweepGrad;
             ctx.fill();
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // 방열 실드(에너지 하베스트) 활성 시 중앙 코어 주변에 뚜렷한 황금 에너지 돔 실드 렌더링!
-            if (lastKnownRoomData) {
-                const hasHeatShield = myTeam === 'blue' ? lastKnownRoomData.blueHeatShield : lastKnownRoomData.redHeatShield;
-                if (hasHeatShield) {
-                    ctx.save();
-                    const shieldPulse = Math.sin(nebulaTime * 4) * 4;
-                    const shieldRadius = 34 + shieldPulse;
-
-                    // 황금빛 보호막 아우라 돔
-                    ctx.shadowBlur = 25;
-                    ctx.shadowColor = '#facc15';
-                    ctx.fillStyle = 'rgba(250, 204, 21, 0.22)';
-                    ctx.strokeStyle = '#facc15';
-                    ctx.lineWidth = 3.5;
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, shieldRadius, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    // 실드 헥사곤 회전 링
-                    ctx.setLineDash([8, 6]);
-                    ctx.strokeStyle = '#fef08a';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, shieldRadius + 6, -nebulaTime * 1.5, Math.PI * 2 - nebulaTime * 1.5);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-
-                    // 상단 실드 라벨
-                    ctx.font = 'bold 11px font-arc, sans-serif';
-                    ctx.fillStyle = '#fef08a';
-                    ctx.textAlign = 'center';
-                    ctx.fillText("🛡️ 방열 실드 활성", cx, cy - shieldRadius - 8);
-                    ctx.restore();
-                }
-            }
-
             ctx.restore();
 
-            // 2. Render Sector Aegis Shield for active team & Approaching Meteor
+            // 3. Draw Active Sector Arc Shield & Meteor Warning
             if (lastKnownRoomData) {
                 const data = lastKnownRoomData;
                 const mission = myTeam === 'blue' ? data.blueMission : data.redMission;
-                const stage = myTeam === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
-
-                if (mission) {
-                    const startRad = (mission.startAngle * Math.PI) / 180;
-                    const endRad = (mission.endAngle * Math.PI) / 180;
-                    const isBlue = myTeam === 'blue';
-                    const mainColor = isHyperFeverActive ? '#facc15' : (isBlue ? '#38bdf8' : '#fb7185');
-                    const fillColor = isHyperFeverActive 
-                        ? 'rgba(250, 204, 21, 0.45)' 
-                        : (isBlue ? 'rgba(56, 189, 248, 0.35)' : 'rgba(251, 113, 133, 0.35)');
-
-                    const midRad = ((mission.startAngle + mission.x / 2) * Math.PI) / 180;
-
-                    // Dynamic Approaching Meteor Animation: approaches smoothly from outer rim
-                    const meteorProgress = Math.min(0.88, 0.55 + (stage * 0.08) + Math.sin(nebulaTime * 2) * 0.03);
-                    const meteorDist = maxR * (1.18 - meteorProgress * 0.32);
-                    const mx = cx + Math.cos(midRad) * meteorDist;
-                    const my = cy + Math.sin(midRad) * meteorDist;
-
-                    // Meteor Fiery Trail
-                    ctx.save();
-                    const trailGrad = ctx.createLinearGradient(
-                        mx + Math.cos(midRad) * 35, my + Math.sin(midRad) * 35,
-                        mx, my
-                    );
-                    trailGrad.addColorStop(0, 'rgba(239, 68, 68, 0)');
-                    trailGrad.addColorStop(1, 'rgba(245, 158, 11, 0.85)');
-                    ctx.strokeStyle = trailGrad;
-                    ctx.lineWidth = 8;
-                    ctx.beginPath();
-                    ctx.moveTo(mx + Math.cos(midRad) * 30, my + Math.sin(midRad) * 30);
-                    ctx.lineTo(mx, my);
-                    ctx.stroke();
-
-                    // Meteor Core
-                    ctx.fillStyle = '#ef4444';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#f97316';
-                    ctx.beginPath();
-                    ctx.arc(mx, my, 8, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.font = 'bold 16px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText("☄️", mx, my);
-                    ctx.restore();
-
-                    // Step 1: Central Angle Rays (x°)
-                    if (stage >= 1) {
-                        ctx.save();
-                        ctx.strokeStyle = '#facc15';
-                        ctx.lineWidth = 2.5;
-                        ctx.setLineDash([6, 4]);
-                        ctx.beginPath();
-                        ctx.moveTo(cx, cy);
-                        ctx.lineTo(cx + Math.cos(startRad) * maxR * 0.85, cy + Math.sin(startRad) * maxR * 0.85);
-                        ctx.moveTo(cx, cy);
-                        ctx.lineTo(cx + Math.cos(endRad) * maxR * 0.85, cy + Math.sin(endRad) * maxR * 0.85);
-                        ctx.stroke();
-                        ctx.setLineDash([]);
-
-                        // Angle Arc marker near core
-                        ctx.beginPath();
-                        ctx.arc(cx, cy, 38, startRad, endRad);
-                        ctx.stroke();
-                        ctx.font = 'bold 12px font-arc, sans-serif';
-                        ctx.fillStyle = '#fde047';
-                        ctx.fillText(`${mission.x}°`, cx + Math.cos(midRad) * 55, cy + Math.sin(midRad) * 55);
-                        ctx.restore();
-                    }
-
-                    // Step 2: Arc Length Outer Curve (l)
-                    if (stage >= 2) {
-                        ctx.save();
-                        ctx.strokeStyle = mainColor;
-                        ctx.lineWidth = 5;
-                        ctx.shadowBlur = 18;
-                        ctx.shadowColor = mainColor;
-                        ctx.beginPath();
-                        ctx.arc(cx, cy, maxR * 0.85, startRad, endRad);
-                        ctx.stroke();
-
-                        ctx.font = 'bold 12px font-arc, sans-serif';
-                        ctx.fillStyle = mainColor;
-                        ctx.fillText(`호 l = ${mission.arcCoef}π`, cx + Math.cos(midRad) * (maxR * 0.85 + 18), cy + Math.sin(midRad) * (maxR * 0.85 + 18));
-                        ctx.restore();
-                    }
-
-                    // Step 3 & 4: Filled Area (S)
-                    if (stage >= 3) {
-                        ctx.save();
-                        ctx.fillStyle = fillColor;
-                        ctx.beginPath();
-                        ctx.moveTo(cx, cy);
-                        ctx.arc(cx, cy, maxR * 0.85, startRad, endRad);
-                        ctx.closePath();
-                        ctx.fill();
-
-                        ctx.font = 'bold 13px font-arc, sans-serif';
-                        ctx.fillStyle = '#ffffff';
-                        ctx.shadowBlur = 10;
-                        ctx.shadowColor = mainColor;
-                        ctx.fillText(`넓이 S = ${mission.areaCoef}π`, cx + Math.cos(midRad) * (maxR * 0.45), cy + Math.sin(midRad) * (maxR * 0.45));
-                        ctx.restore();
-                    }
-                }
+                drawActiveArcShield(cx, cy, maxR, mission);
             }
 
-            // 3. Render Expanding Shockwaves
-            for (let i = shockwaves.length - 1; i >= 0; i--) {
-                const sw = shockwaves[i];
-                sw.radius += 5.5;
-                sw.alpha -= 0.035;
-
-                ctx.save();
-                ctx.strokeStyle = sw.color;
-                ctx.lineWidth = 4;
-                ctx.globalAlpha = Math.max(0, sw.alpha);
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = sw.color;
-                ctx.beginPath();
-                ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
-
-                if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
-            }
-
-            // 4. Render Counter Laser Beams
-            for (let i = laserProjectiles.length - 1; i >= 0; i--) {
-                const laser = laserProjectiles[i];
-                laser.progress += 0.055;
-
-                const beamLength = maxR * 1.35;
-                const endX = cx + Math.cos(laser.angle) * beamLength * laser.progress;
-                const endY = cy + Math.sin(laser.angle) * beamLength * laser.progress;
-
-                ctx.save();
-                const laserWidth = laser.isFever ? 14 : (laser.tacticalType === 'reflect' ? 11 : (laser.tacticalType === 'emp' ? 13 : 9));
-                let laserColor = '#38bdf8';
-
-                if (laser.isFever || laser.tacticalType === 'harvest') {
-                    laserColor = '#facc15';
-                } else if (laser.tacticalType === 'emp') {
-                    laserColor = '#c084fc';
-                } else {
-                    laserColor = laser.team === 'blue' ? '#38bdf8' : '#fb7185';
-                }
-
-                ctx.strokeStyle = laserColor;
-                ctx.lineWidth = laserWidth;
-                ctx.shadowBlur = 25;
-                ctx.shadowColor = laserColor;
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(endX, endY);
-                ctx.stroke();
-
-                // Harvest Tactical Mode: Extra Golden Concentric Aura
-                if (laser.tacticalType === 'harvest') {
-                    ctx.strokeStyle = 'rgba(250, 204, 21, 0.4)';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, 35 + laser.progress * 45, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-
-                ctx.restore();
-
-                if (laser.progress >= 1) {
-                    for (let k = 0; k < 20; k++) {
-                        const sparkAngle = Math.random() * Math.PI * 2;
-                        const spd = Math.random() * 4 + 2;
-                        explosions.push({
-                            x: endX,
-                            y: endY,
-                            vx: Math.cos(sparkAngle) * spd,
-                            vy: Math.sin(sparkAngle) * spd,
-                            radius: Math.random() * 4 + 2,
-                            color: laserColor,
-                            alpha: 1
-                        });
-                    }
-                    laserProjectiles.splice(i, 1);
-                }
-            }
-
-            // 5. Render Tactical Pings
+            // 4. Draw Tactical Pings
             for (let i = tacticalPings.length - 1; i >= 0; i--) {
                 const p = tacticalPings[i];
-                p.radius += 1.2;
+                p.radius += 0.9;
                 p.alpha -= 0.025;
 
                 const rad = (p.angle * Math.PI) / 180;
-                const px = cx + Math.cos(rad) * (maxR * 0.65);
-                const py = cy + Math.sin(rad) * (maxR * 0.65);
+                const px = cx + Math.cos(rad) * (maxR * 0.7);
+                const py = cy - Math.sin(rad) * (maxR * 0.7);
 
                 ctx.save();
                 ctx.strokeStyle = `rgba(250, 204, 21, ${p.alpha})`;
-                ctx.lineWidth = 2.5;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.arc(px, py, p.radius, 0, Math.PI * 2);
                 ctx.stroke();
@@ -1889,15 +1390,38 @@
                 if (p.alpha <= 0) tacticalPings.splice(i, 1);
             }
 
-            // 6. Render Explosion Sparks & Shatter Debris
+            // 5. Draw Shield Beams / Counter Lasers
+            for (let i = shieldBeams.length - 1; i >= 0; i--) {
+                const b = shieldBeams[i];
+                b.progress += 0.04;
+
+                const rad = (b.angle * Math.PI) / 180;
+                const endX = cx + Math.cos(rad) * maxR * b.progress;
+                const endY = cy - Math.sin(rad) * maxR * b.progress;
+
+                ctx.save();
+                ctx.strokeStyle = b.tacticalType === 'emp' ? '#c084fc' : (b.tacticalType === 'harvest' ? '#facc15' : '#38bdf8');
+                ctx.lineWidth = 5;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = ctx.strokeStyle;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+                ctx.restore();
+
+                if (b.progress >= 1) shieldBeams.splice(i, 1);
+            }
+
+            // 6. Draw Explosions
             for (let i = explosions.length - 1; i >= 0; i--) {
                 const exp = explosions[i];
                 exp.x += exp.vx;
                 exp.y += exp.vy;
-                exp.alpha -= 0.03;
+                exp.alpha -= 0.035;
 
                 ctx.save();
-                ctx.globalAlpha = Math.max(0, exp.alpha);
+                ctx.globalAlpha = exp.alpha;
                 ctx.fillStyle = exp.color;
                 ctx.beginPath();
                 ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2);
@@ -1907,7 +1431,41 @@
                 if (exp.alpha <= 0) explosions.splice(i, 1);
             }
 
-            requestAnimationFrame(renderArcLoop);
+            ctx.restore();
+            requestAnimationFrame(renderRadarLoop);
+        }
+
+        function drawActiveArcShield(cx, cy, maxR, mission) {
+            if (!mission) return;
+            const startAngle = -0.4;
+            const endAngle = startAngle - (mission.angle * Math.PI) / 180;
+
+            // Draw Sector Arc Shield Shape
+            ctx.save();
+            ctx.fillStyle = 'rgba(34, 211, 238, 0.18)';
+            ctx.strokeStyle = '#22d3ee';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, maxR * 0.8, startAngle, endAngle, true);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Meteor Incoming Marker at Sector Edge
+            const meteorRad = (startAngle + endAngle) / 2;
+            const mx = cx + Math.cos(meteorRad) * (maxR * 0.85);
+            const my = cy + Math.sin(meteorRad) * (maxR * 0.85);
+
+            ctx.font = '20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText("☄️", mx, my);
+
+            ctx.font = 'bold 11px font-arc, sans-serif';
+            ctx.fillStyle = '#f87171';
+            ctx.fillText(`중심각 ${mission.angle}° 메테오`, mx, my + 18);
+            ctx.restore();
         }
     </script>
 </body>
