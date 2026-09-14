@@ -439,7 +439,7 @@
     <!-- Main Game Logic and Firebase Synchronizer -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChxrOzoTxFMy_BvkvNZLXAp1oRvN7Fb1g",
@@ -454,10 +454,61 @@
         let db = null;
         try {
             const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
+            // 학교망/방화벽 차단을 우회하기 위한 강제 롱폴링(Long-Polling) 소켓 설정
+            db = initializeFirestore(app, {
+                experimentalForceLongPolling: true
+            });
+            console.log("Firestore 초기화 완료 (Long Polling 활성화)");
         } catch (e) {
             console.error("Firebase init error:", e);
         }
+
+        // 클라우드 데이터베이스 초기 자동 진단
+        async function checkInitialDbStatus() {
+            const dotEl = document.getElementById('db-status-dot');
+            const textEl = document.getElementById('db-status-text');
+            if (!db) {
+                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-rose-500";
+                if (textEl) textEl.innerText = "초기화 실패 (네트워크 차단)";
+                return;
+            }
+
+            try {
+                const pingRef = doc(db, 'aegis_arc_rooms', '_ping_check');
+                await setDoc(pingRef, { ping: Date.now() }, { merge: true });
+                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-emerald-400";
+                if (textEl) textEl.innerText = "🟢 정상 연결됨 (Firestore 실시간 동기화 준비 완료)";
+            } catch (err) {
+                console.warn("DB Ping Check Error:", err);
+                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-rose-500";
+                if (textEl) textEl.innerText = `🔴 연결 실패: ${err.code || err.message}`;
+            }
+        }
+
+        window.testDirectDatabaseWrite = async function() {
+            const dotEl = document.getElementById('db-status-dot');
+            const textEl = document.getElementById('db-status-text');
+            if (textEl) textEl.innerText = "테스트 데이터 전송 중...";
+
+            try {
+                const testRef = doc(db, 'aegis_arc_rooms', 'test_room');
+                await setDoc(testRef, {
+                    message: "파이어베이스 연결 성공!",
+                    testedAt: new Date().toLocaleTimeString(),
+                    timestamp: Date.now()
+                });
+                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-emerald-400";
+                if (textEl) textEl.innerText = "🟢 전송 성공! (파이어베이스 콘솔에 test_room 생성됨!)";
+                showStepFeedback("🎉 [클라우드 DB 전송 성공!] 파이어베이스 콘솔을 새로고침해 보세요!", false);
+            } catch (err) {
+                console.error("Test write failed:", err);
+                if (dotEl) dotEl.className = "inline-block w-3 h-3 rounded-full bg-rose-500";
+                if (textEl) textEl.innerText = `🔴 전송 실패: ${err.message}`;
+            }
+        };
+
+        // 로비 진입 시 0.5초 후 초기 핑 검사 실행
+        setTimeout(checkInitialDbStatus, 500);
 
         let currentUserName = '';
         let currentRoomCode = '';
