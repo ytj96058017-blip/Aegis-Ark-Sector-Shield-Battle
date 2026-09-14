@@ -453,13 +453,13 @@
         };
 
         let db = null;
+        let auth = null;
         let useFallback = false;
 
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            const auth = getAuth(app);
-            signInAnonymously(auth).catch(() => { useFallback = true; });
+            auth = getAuth(app);
         } catch (e) {
             useFallback = true;
         }
@@ -734,7 +734,7 @@
             myTeam = team;
 
             const myMemberObj = { name: currentUserName, joinedAt: Date.now() };
-            document.getElementById('lobby-status').innerText = "에이지스 통신망에 접속 중입니다...";
+            document.getElementById('lobby-status').innerText = "클라우드 서버에 접속 중입니다... (최초 연결 시 3~5초 소요)";
 
             try {
                 if (window.BroadcastChannel) {
@@ -765,7 +765,17 @@
                 }
             } catch (e) {}
 
-            const withTimeout = (p, ms = 1500) => Promise.race([
+            // 파이어베이스 최초 인증 완료까지 대기 (권한 획득)
+            try {
+                if (auth && !auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                useFallback = true;
+            }
+
+            // 서로 다른 기기 접속 시 최초 통신 지연을 대비해 타임아웃을 1.5초에서 5초로 연장
+            const withTimeout = (p, ms = 5000) => Promise.race([
                 p,
                 new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
             ]);
