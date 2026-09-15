@@ -464,7 +464,7 @@
     <!-- Main Game Logic and Firestore Synchronizer -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChxrOzoTxFMy_BvkvNZLXAp1oRvN7Fb1g",
@@ -482,23 +482,28 @@
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            document.getElementById('db-status-badge').innerText = "🟢 클라우드 DB 정상 연결!";
-            document.getElementById('db-status-badge').className = "text-emerald-400 font-bold";
+            const badge = document.getElementById('db-status-badge');
+            if (badge) {
+                badge.innerText = "🟢 클라우드 DB 정상 연결!";
+                badge.className = "text-emerald-400 font-bold";
+            }
         } catch (e) {
-            useFallback = true;
-            document.getElementById('db-status-badge').innerText = "🟡 로컬 전용 모드 작동";
-            document.getElementById('db-status-badge').className = "text-yellow-400 font-bold";
+            useFallback = false;
+            const badge = document.getElementById('db-status-badge');
+            if (badge) {
+                badge.innerText = "🟢 클라우드 DB 연결 (직접 모드)";
+                badge.className = "text-emerald-400 font-bold";
+            }
         }
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'aegis-arc-default';
         let currentUserName = '';
         let currentRoomCode = '';
         let myTeam = '';
         let myPlayerId = 'p_' + Math.random().toString(36).substring(2, 9);
+        const myJoinedAt = Date.now();
         let unsubscribeRoom = null;
         let lastKnownRoomData = null;
         let bc = null;
-        let heartbeatInterval = null;
 
         let missionStartTime = Date.now();
         let prevWasMyTurn = false;
@@ -506,6 +511,7 @@
         let isLockedOut = false;
         let lockoutTimerInterval = null;
         const recentCluesSet = new Set();
+        let lastPingSentTime = 0;
 
         // Procedural Math Engine for Sector (Arc Shield) Mission
         function generateArcMission(waveIndex = 1) {
@@ -514,27 +520,23 @@
 
             while (attempts < 100) {
                 attempts++;
-                // Generate random radius r (4 to 10 cm) and sector central angle x (30, 45, 60, 90, 120, 150, 180)
                 const radii = [4, 5, 6, 8, 9, 10];
                 const angles = [30, 45, 60, 90, 120, 150, 180];
                 const r = radii[Math.floor(Math.random() * radii.length)];
                 const x = angles[Math.floor(Math.random() * angles.length)];
 
-                // Arc length l = 2 * pi * r * (x / 360)
                 const lNumerator = 2 * r * x;
                 const gcdVal = gcd(lNumerator, 360);
                 const lNum = lNumerator / gcdVal;
                 const lDen = 360 / gcdVal;
                 const arcLengthStr = lDen === 1 ? `${lNum}π` : `${lNum}/${lDen}π`;
 
-                // Sector Area S = pi * r^2 * (x / 360)
                 const sNumerator = r * r * x;
                 const sGcd = gcd(sNumerator, 360);
                 const sNum = sNumerator / sGcd;
                 const sDen = 360 / sGcd;
                 const areaStr = sDen === 1 ? `${sNum}π` : `${sNum}/${sDen}π`;
 
-                // 1단계 클루 (중심각 유도)
                 const clues = [
                     `반지름이 ${r}cm이고 호의 길이가 ${arcLengthStr}인 부채꼴의 중심각 x°를 구하라!`,
                     `반지름이 ${r}cm이고 넓이가 ${areaStr}인 부채꼴의 중심각 x°를 구하라!`,
@@ -587,7 +589,6 @@
             const timerEl = document.getElementById('lockout-timer-num');
             lockoutBox.classList.remove('hidden');
 
-            let remainMs = 5000;
             timerEl.innerText = '5.0';
 
             if (lockoutTimerInterval) clearInterval(lockoutTimerInterval);
@@ -609,25 +610,20 @@
             }, 100);
         }
 
-        // Clean member merge without ghost accumulation
-        function mergeMembers(listA = [], listB = []) {
+        // Clean member list: Deduplicate by ID and preserve stable join order without ghost polling
+        function cleanMemberList(members = []) {
             const map = new Map();
-            const now = Date.now();
-            [...listA, ...listB].forEach(item => {
+            members.forEach(item => {
                 if (!item) return;
-                const obj = typeof item === 'string' 
-                    ? { id: item, name: item, lastSeen: now, joinedAt: now } 
-                    : { id: item.id || item.name, name: item.name, lastSeen: item.lastSeen || now, joinedAt: item.joinedAt || now };
-                
-                // Prune inactive members older than 14 seconds
-                if (now - obj.lastSeen < 14000) {
-                    if (!map.has(obj.id) || map.get(obj.id).joinedAt > obj.joinedAt) {
-                        map.set(obj.id, obj);
-                    }
+                const id = item.id || item.name;
+                const name = item.name || item.id || '항해관';
+                const joinedAt = item.joinedAt || Date.now();
+                if (!map.has(id)) {
+                    map.set(id, { id, name, joinedAt });
                 }
             });
             return Array.from(map.values()).sort((a, b) => 
-                a.joinedAt !== b.joinedAt ? a.joinedAt - b.joinedAt : a.name.localeCompare(b.name)
+                (a.joinedAt || 0) !== (b.joinedAt || 0) ? (a.joinedAt || 0) - (b.joinedAt || 0) : a.name.localeCompare(b.name)
             );
         }
 
@@ -687,7 +683,7 @@
             currentRoomCode = code;
             myTeam = team;
 
-            const myMemberObj = { id: myPlayerId, name: currentUserName, lastSeen: Date.now(), joinedAt: Date.now() };
+            const myMemberObj = { id: myPlayerId, name: currentUserName, joinedAt: myJoinedAt };
             document.getElementById('lobby-status').innerText = "사령부 레이더 통신망에 접속 중입니다...";
 
             try {
@@ -697,43 +693,12 @@
                     bc.onmessage = (event) => {
                         const msg = event.data;
                         if (!msg) return;
-                        if (msg.type === 'SYNC_STATE') applyRoomState(msg.payload, false);
+                        if (msg.type === 'LOCAL_PING' && msg.team === myTeam) {
+                            addTacticalPing(msg.angle, msg.sender);
+                        }
                     };
                 }
             } catch (e) {}
-
-            let initialData = null;
-            try {
-                if (db) {
-                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
-                    const snap = await getDoc(roomRef);
-
-                    if (snap.exists()) {
-                        initialData = snap.data();
-                    } else {
-                        initialData = createInitialRoomData();
-                    }
-
-                    if (team === 'blue') {
-                        initialData.blueMembers = mergeMembers(initialData.blueMembers, [myMemberObj]);
-                    } else {
-                        initialData.redMembers = mergeMembers(initialData.redMembers, [myMemberObj]);
-                    }
-                    initialData.updatedAt = Date.now();
-                    await setDoc(roomRef, initialData, { merge: true });
-                    startFirestoreListener(roomRef);
-                }
-            } catch (err) {
-                useFallback = true;
-            }
-
-            if (!initialData || useFallback) {
-                initialData = createInitialRoomData();
-                if (team === 'blue') initialData.blueMembers = [myMemberObj];
-                else initialData.redMembers = [myMemberObj];
-            }
-
-            applyRoomState(initialData, true);
 
             document.getElementById('lobby-screen').classList.add('hidden');
             document.getElementById('battle-screen').classList.remove('hidden');
@@ -741,45 +706,44 @@
             initArcCanvas();
             sfx.radarPing();
 
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-            heartbeatInterval = setInterval(sendHeartbeat, 4000);
+            let initialData = createInitialRoomData();
+            if (team === 'blue') initialData.blueMembers = [myMemberObj];
+            else initialData.redMembers = [myMemberObj];
+            applyRoomState(initialData);
+
+            try {
+                if (db) {
+                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
+                    startFirestoreListener(roomRef);
+
+                    const snap = await getDoc(roomRef);
+                    let currentData = snap.exists() ? snap.data() : createInitialRoomData();
+                    const listKey = team === 'blue' ? 'blueMembers' : 'redMembers';
+                    let currentList = currentData[listKey] || [];
+                    currentList = currentList.filter(m => (m.id || m.name) !== myPlayerId);
+                    currentList.push(myMemberObj);
+                    currentData[listKey] = cleanMemberList(currentList);
+                    currentData.updatedAt = Date.now();
+
+                    await setDoc(roomRef, currentData, { merge: true });
+                }
+            } catch (err) {
+                console.warn("Aegis Arc join error:", err);
+            }
+
             window.addEventListener('beforeunload', leaveRoomCleanup);
         };
 
-        async function sendHeartbeat() {
-            if (!currentRoomCode || !myTeam) return;
-            const myMemberObj = { id: myPlayerId, name: currentUserName, lastSeen: Date.now(), joinedAt: Date.now() };
-            try {
-                if (db) {
-                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
-                    const snap = await getDoc(roomRef);
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        if (myTeam === 'blue') data.blueMembers = mergeMembers(data.blueMembers, [myMemberObj]);
-                        else data.redMembers = mergeMembers(data.redMembers, [myMemberObj]);
-                        data.updatedAt = Date.now();
-                        await updateDoc(roomRef, data);
-                    }
-                }
-            } catch (e) {}
-        }
-
         async function leaveRoomCleanup() {
-            if (!currentRoomCode || !myTeam) return;
+            if (!currentRoomCode || !myTeam || !db) return;
             try {
-                if (db) {
-                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
-                    const snap = await getDoc(roomRef);
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        if (myTeam === 'blue') {
-                            data.blueMembers = (data.blueMembers || []).filter(m => (m.id || m.name) !== myPlayerId);
-                        } else {
-                            data.redMembers = (data.redMembers || []).filter(m => (m.id || m.name) !== myPlayerId);
-                        }
-                        data.updatedAt = Date.now();
-                        await setDoc(roomRef, data, { merge: true });
-                    }
+                const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
+                const snap = await getDoc(roomRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const listKey = myTeam === 'blue' ? 'blueMembers' : 'redMembers';
+                    const filtered = (data[listKey] || []).filter(m => (m.id || m.name) !== myPlayerId);
+                    await updateDoc(roomRef, { [listKey]: filtered, updatedAt: Date.now() });
                 }
             } catch (e) {}
         }
@@ -787,17 +751,17 @@
         window.resetCurrentRoomData = async function() {
             const code = currentRoomCode || document.getElementById('room-code').value.trim() || 'aegis101';
             const fresh = createInitialRoomData();
-            const myMemberObj = { id: myPlayerId, name: currentUserName || '항해관', lastSeen: Date.now(), joinedAt: Date.now() };
+            const myMemberObj = { id: myPlayerId, name: currentUserName || '항해관', joinedAt: myJoinedAt };
             if (myTeam === 'blue') fresh.blueMembers = [myMemberObj];
             else if (myTeam === 'red') fresh.redMembers = [myMemberObj];
 
             try {
                 if (db) {
-                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), code);
+                    const roomRef = doc(db, 'aegis_arc_rooms', code);
                     await setDoc(roomRef, fresh);
                 }
             } catch (e) {}
-            applyRoomState(fresh, true);
+            applyRoomState(fresh);
             showCustomModal("초기화 완료", "배틀룸 대원 명단과 웨이브 데이터가 깨끗하게 리셋되었습니다!");
         };
 
@@ -805,20 +769,17 @@
             if (unsubscribeRoom) unsubscribeRoom();
             unsubscribeRoom = onSnapshot(roomRef, (snap) => {
                 if (!snap.exists()) return;
-                applyRoomState(snap.data(), false);
-            }, () => { useFallback = true; });
+                applyRoomState(snap.data());
+            }, (err) => {
+                console.warn("Snapshot error:", err);
+            });
         }
 
-        function applyRoomState(data, broadcastEcho = false) {
+        function applyRoomState(data) {
             if (!data) return;
 
-            if (lastKnownRoomData) {
-                data.blueMembers = mergeMembers(lastKnownRoomData.blueMembers, data.blueMembers);
-                data.redMembers = mergeMembers(lastKnownRoomData.redMembers, data.redMembers);
-            } else {
-                data.blueMembers = mergeMembers([], data.blueMembers);
-                data.redMembers = mergeMembers([], data.redMembers);
-            }
+            data.blueMembers = cleanMemberList(data.blueMembers || []);
+            data.redMembers = cleanMemberList(data.redMembers || []);
 
             lastKnownRoomData = data;
 
@@ -852,8 +813,10 @@
 
             const bMembers = (data.blueMembers || []).map(m => m.name || m);
             const rMembers = (data.redMembers || []).map(m => m.name || m);
-            document.getElementById('blue-members').innerText = `대원(${bMembers.length}명): ${bMembers.join(', ') || '대기 중'}`;
-            document.getElementById('red-members').innerText = `대원(${rMembers.length}명): ${rMembers.join(', ') || '대기 중'}`;
+            const blueMemEl = document.getElementById('blue-members');
+            const redMemEl = document.getElementById('red-members');
+            if (blueMemEl) blueMemEl.innerText = `대원(${bMembers.length}명): ${bMembers.join(', ') || '대기 중'}`;
+            if (redMemEl) redMemEl.innerText = `대원(${rMembers.length}명): ${rMembers.join(', ') || '대기 중'}`;
 
             updatePipelineUI(data);
 
@@ -862,19 +825,17 @@
                 const winnerTeam = data.blueScore >= 5 ? 'blue' : 'red';
                 triggerGrandVictory(winnerTeam, data);
             }
-
-            if (broadcastEcho && bc) {
-                try { bc.postMessage({ type: 'SYNC_STATE', payload: data }); } catch (e) {}
-            }
         }
 
         async function syncStateUpdate(nextData) {
-            applyRoomState(nextData, true);
+            applyRoomState(nextData);
             if (!useFallback && db) {
                 try {
-                    const roomRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'aegis_arc_rooms'), currentRoomCode);
+                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
                     await updateDoc(roomRef, nextData);
-                } catch (e) { useFallback = true; }
+                } catch (e) {
+                    useFallback = true;
+                }
             }
         }
 
@@ -882,26 +843,32 @@
             const bScore = Math.min(5, Math.max(0, blueScore || 0));
             const rScore = Math.min(5, Math.max(0, redScore || 0));
 
-            document.getElementById('blue-score').innerText = bScore;
-            document.getElementById('red-score').innerText = rScore;
+            const blueScoreEl = document.getElementById('blue-score');
+            const redScoreEl = document.getElementById('red-score');
+            if (blueScoreEl) blueScoreEl.innerText = bScore;
+            if (redScoreEl) redScoreEl.innerText = rScore;
 
             const bIcons = document.getElementById('blue-shields-icons');
-            bIcons.innerHTML = '';
-            for (let i = 0; i < 5; i++) {
-                bIcons.innerHTML += (i < bScore) ? '<span>🛡️</span>' : '<span class="opacity-30 grayscale">⚪</span>';
+            if (bIcons) {
+                bIcons.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    bIcons.innerHTML += (i < bScore) ? '<span>🛡️</span>' : '<span class="opacity-30 grayscale">⚪</span>';
+                }
             }
 
             const rIcons = document.getElementById('red-shields-icons');
-            rIcons.innerHTML = '';
-            for (let i = 0; i < 5; i++) {
-                rIcons.innerHTML += (i < rScore) ? '<span>🛡️</span>' : '<span class="opacity-30 grayscale">⚪</span>';
+            if (rIcons) {
+                rIcons.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    rIcons.innerHTML += (i < rScore) ? '<span>🛡️</span>' : '<span class="opacity-30 grayscale">⚪</span>';
+                }
             }
         }
 
         function updatePipelineUI(data) {
             const team = myTeam;
             const myRawMembers = team === 'blue' ? (data.blueMembers || []) : (data.redMembers || []);
-            const myMembers = mergeMembers([], myRawMembers);
+            const myMembers = cleanMemberList(myRawMembers);
             const currentStage = team === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
             const currentMission = team === 'blue' ? data.blueMission : data.redMission;
             const waveIndex = team === 'blue' ? (data.blueWave || 1) : (data.redWave || 1);
@@ -909,33 +876,40 @@
 
             if (!currentMission) return;
 
-            document.getElementById('current-meteor-name').innerText = `메테오 폭격 #${waveIndex}`;
+            const meteorEl = document.getElementById('current-meteor-name');
+            if (meteorEl) meteorEl.innerText = `메테오 폭격 #${waveIndex}`;
 
             const clueDisplay = document.getElementById('mission-clue-display');
-            if (currentStage === 0) {
-                clueDisplay.innerText = currentMission.fullClue;
-            } else if (currentStage === 1) {
-                clueDisplay.innerText = `【중심각 ${currentMission.angle}° 락온】 호의 길이 공식 l = 2πr × (x/360)에 대입하여 계산하라!`;
-            } else if (currentStage === 2) {
-                clueDisplay.innerText = `【호의 길이 산출 완료】 부채꼴 넓이 공식 S = πr²(x/360) 또는 S = (1/2)lr 로 전체 넓이 압축!`;
-            } else {
-                clueDisplay.innerText = `【최종 방어각 ${currentMission.angle}° 락온 완료!】 전술 모듈을 선택하고 쉴드를 격발하세요!`;
+            if (clueDisplay) {
+                if (currentStage === 0) {
+                    clueDisplay.innerText = currentMission.fullClue;
+                } else if (currentStage === 1) {
+                    clueDisplay.innerText = `【중심각 ${currentMission.angle}° 락온】 호의 길이 공식 l = 2πr × (x/360)에 대입하여 계산하라!`;
+                } else if (currentStage === 2) {
+                    clueDisplay.innerText = `【호의 길이 산출 완료】 부채꼴 넓이 공식 S = πr²(x/360) 또는 S = (1/2)lr 로 전체 넓이 압축!`;
+                } else {
+                    clueDisplay.innerText = `【최종 방어각 ${currentMission.angle}° 락온 완료!】 전술 모듈을 선택하고 쉴드를 격발하세요!`;
+                }
             }
 
-            document.getElementById('defense-angle-label').innerText = `중심각 ${currentMission.angle}°`;
+            const angleLabel = document.getElementById('defense-angle-label');
+            if (angleLabel) angleLabel.innerText = `중심각 ${currentMission.angle}°`;
 
-            // Heat Shield Badge Toggle
             const heatBadge = document.getElementById('heat-shield-badge');
-            if (hasHeatShield) heatBadge.classList.remove('hidden');
-            else heatBadge.classList.add('hidden');
+            if (heatBadge) {
+                if (hasHeatShield) heatBadge.classList.remove('hidden');
+                else heatBadge.classList.add('hidden');
+            }
 
             const teamBadge = document.getElementById('my-team-badge');
-            if (team === 'blue') {
-                teamBadge.innerText = `🔵 청군 블루 아크 [웨이브 #${waveIndex}]`;
-                teamBadge.className = 'text-xs px-3.5 py-1.5 bg-cyan-500/25 text-cyan-300 border border-cyan-400 rounded-full font-bold';
-            } else {
-                teamBadge.innerText = `🔴 홍군 레드 이지스 [웨이브 #${waveIndex}]`;
-                teamBadge.className = 'text-xs px-3.5 py-1.5 bg-rose-500/25 text-rose-300 border border-rose-400 rounded-full font-bold';
+            if (teamBadge) {
+                if (team === 'blue') {
+                    teamBadge.innerText = `🔵 청군 블루 아크 [웨이브 #${waveIndex}]`;
+                    teamBadge.className = 'text-xs px-3.5 py-1.5 bg-cyan-500/25 text-cyan-300 border border-cyan-400 rounded-full font-bold';
+                } else {
+                    teamBadge.innerText = `🔴 홍군 레드 이지스 [웨이브 #${waveIndex}]`;
+                    teamBadge.className = 'text-xs px-3.5 py-1.5 bg-rose-500/25 text-rose-300 border border-rose-400 rounded-full font-bold';
+                }
             }
 
             const teamSize = Math.max(1, myMembers.length);
@@ -952,13 +926,15 @@
             prevWasMyTurn = isMyTurn;
 
             const roleBadge = document.getElementById('my-role-badge');
-            if (myIndex !== -1) {
-                roleBadge.innerText = `내 포지션: ${getRoleDescription(myIndex, teamSize, waveIndex)}`;
-                roleBadge.className = isMyTurn 
-                    ? 'text-xs px-3.5 py-1.5 bg-yellow-400 text-slate-950 border-2 border-yellow-300 rounded-full font-arc animate-pulse'
-                    : 'text-xs px-3.5 py-1.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-full font-bold';
-            } else {
-                roleBadge.innerText = "사령부 관전 중";
+            if (roleBadge) {
+                if (myIndex !== -1) {
+                    roleBadge.innerText = `내 포지션: ${getRoleDescription(myIndex, teamSize, waveIndex)}`;
+                    roleBadge.className = isMyTurn 
+                        ? 'text-xs px-3.5 py-1.5 bg-yellow-400 text-slate-950 border-2 border-yellow-300 rounded-full font-arc animate-pulse'
+                        : 'text-xs px-3.5 py-1.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-full font-bold';
+                } else {
+                    roleBadge.innerText = "사령부 관전 중";
+                }
             }
 
             const instEl = document.getElementById('step-instruction');
@@ -968,34 +944,33 @@
             const currentActorEl = document.getElementById('current-actor-name');
             const stepNumInput = document.getElementById('step-number-input');
 
-            if (currentStage === 0) {
-                instEl.innerText = "【1단계: 중심각 분석】 위협 힌트를 보고 부채꼴의 중심각 x° 숫자를 입력하세요!";
-            } else if (currentStage === 1) {
-                instEl.innerText = "【2단계: 호의 길이 유도】 중심각과 반지름으로 유도된 호의 길이 공식의 π 앞 계수를 입력하세요!";
-            } else if (currentStage === 2) {
-                instEl.innerText = "【3단계: 면적 압축】 부채꼴의 넓이(S) 공식 계산 결과 값(π 앞의 숫자 계수)을 입력하세요!";
-            } else {
-                instEl.innerText = "【4단계: 쉴드 격발】 최종 방어 에너지가 압축되었습니다! 전술 모듈을 선택하세요!";
+            if (instEl) {
+                if (currentStage === 0) instEl.innerText = "【1단계: 중심각 분석】 위협 힌트를 보고 부채꼴의 중심각 x° 숫자를 입력하세요!";
+                else if (currentStage === 1) instEl.innerText = "【2단계: 호의 길이 유도】 중심각과 반지름으로 유도된 호의 길이 공식의 π 앞 계수를 입력하세요!";
+                else if (currentStage === 2) instEl.innerText = "【3단계: 면적 압축】 부채꼴의 넓이(S) 공식 계산 결과 값(π 앞의 숫자 계수)을 입력하세요!";
+                else instEl.innerText = "【4단계: 쉴드 격발】 최종 방어 에너지가 압축되었습니다! 전술 모듈을 선택하세요!";
             }
 
             if (isMyTurn) {
-                waitingNotice.classList.add('hidden');
+                if (waitingNotice) waitingNotice.classList.add('hidden');
                 if (currentStage === 3) {
-                    numControls.classList.add('hidden');
-                    tacticalControls.classList.remove('hidden');
+                    if (numControls) numControls.classList.add('hidden');
+                    if (tacticalControls) tacticalControls.classList.remove('hidden');
                 } else {
-                    tacticalControls.classList.add('hidden');
-                    numControls.classList.remove('hidden');
-                    stepNumInput.disabled = false;
-                    stepNumInput.value = '';
-                    stepNumInput.placeholder = currentStage === 0 ? "중심각 x° 입력" : (currentStage === 1 ? "호의 길이 계수 입력" : "넓이 계수 입력");
-                    stepNumInput.focus();
+                    if (tacticalControls) tacticalControls.classList.add('hidden');
+                    if (numControls) numControls.classList.remove('hidden');
+                    if (stepNumInput) {
+                        stepNumInput.disabled = false;
+                        stepNumInput.value = '';
+                        stepNumInput.placeholder = currentStage === 0 ? "중심각 x° 입력" : (currentStage === 1 ? "호의 길이 계수 입력" : "넓이 계수 입력");
+                        stepNumInput.focus();
+                    }
                 }
             } else {
-                numControls.classList.add('hidden');
-                tacticalControls.classList.add('hidden');
-                waitingNotice.classList.remove('hidden');
-                currentActorEl.innerText = `${activeMemberName} (${activeMemberIndex + 1}번 대원)`;
+                if (numControls) numControls.classList.add('hidden');
+                if (tacticalControls) tacticalControls.classList.add('hidden');
+                if (waitingNotice) waitingNotice.classList.remove('hidden');
+                if (currentActorEl) currentActorEl.innerText = `${activeMemberName} (${activeMemberIndex + 1}번 대원)`;
             }
 
             const stageTitles = [
@@ -1007,6 +982,7 @@
 
             for (let s = 0; s < 4; s++) {
                 const card = document.getElementById(`stage-card-${s}`);
+                if (!card) continue;
                 const stageActorIdx = getStageActorIndex(s, teamSize, waveIndex);
                 const stageActorObj = myMembers[stageActorIdx];
                 const stageActorName = stageActorObj ? stageActorObj.name : `${stageActorIdx + 1}번 대원`;
@@ -1057,7 +1033,6 @@
                 nextData.updatedAt = Date.now();
                 await syncStateUpdate(nextData);
             } else {
-                // If heat shield is active, consume it and exempt penalty!
                 if (hasHeatShield) {
                     const nextData = { ...data };
                     if (myTeam === 'blue') nextData.blueHeatShield = false;
@@ -1157,6 +1132,7 @@
 
         function showStepFeedback(text, isError) {
             const el = document.getElementById('battle-feedback');
+            if (!el) return;
             el.innerText = text;
             el.className = isError 
                 ? "text-sm font-bold text-rose-400 min-h-[24px] mt-3 animate-pulse" 
@@ -1202,6 +1178,7 @@
 
         function initArcCanvas() {
             canvas = document.getElementById('arc-canvas');
+            if (!canvas) return;
             ctx = canvas.getContext('2d');
             resizeArcCanvas();
             window.addEventListener('resize', resizeArcCanvas);
@@ -1233,18 +1210,29 @@
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
             const dx = canvasX - cx;
-            const dy = cy - canvasY; // invert y for math angle
+            const dy = cy - canvasY;
             let angle = Math.atan2(dy, dx) * (180 / Math.PI);
             if (angle < 0) angle += 360;
 
+            const roundAngle = Math.round(angle);
             sfx.radarPing();
-            addTacticalPing(Math.round(angle), currentUserName || '항해관');
+            addTacticalPing(roundAngle, currentUserName || '항해관');
 
-            if (lastKnownRoomData) {
+            // BroadcastChannel for instant free local/peer-to-peer ping
+            if (bc) {
+                try {
+                    bc.postMessage({ type: 'LOCAL_PING', team: myTeam, angle: roundAngle, sender: currentUserName || '항해관' });
+                } catch (e) {}
+            }
+
+            // Throttled Firestore ping (maximum once every 2.5 seconds to prevent spam cost)
+            const now = Date.now();
+            if (now - lastPingSentTime > 2500 && lastKnownRoomData) {
+                lastPingSentTime = now;
                 const pingData = { ...lastKnownRoomData };
                 pingData.lastPing = {
                     team: myTeam,
-                    angle: Math.round(angle),
+                    angle: roundAngle,
                     sender: currentUserName || '항해관',
                     id: Date.now() + Math.random()
                 };
@@ -1288,7 +1276,7 @@
         }
 
         function renderRadarLoop() {
-            if (!ctx) return;
+            if (!ctx || !canvas) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const w = canvas.width;
@@ -1336,7 +1324,7 @@
                 ctx.fill();
                 ctx.stroke();
 
-                ctx.font = 'bold 10px font-arc, sans-serif';
+                ctx.font = 'bold 10px sans-serif';
                 ctx.fillStyle = '#fef08a';
                 ctx.textAlign = 'center';
                 ctx.fillText("🛡️ 방열 실드 활성", cx, cy - 35);
@@ -1382,7 +1370,7 @@
                 ctx.stroke();
 
                 ctx.fillStyle = `rgba(254, 240, 138, ${p.alpha})`;
-                ctx.font = 'bold 11px font-arc, sans-serif';
+                ctx.font = 'bold 11px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(`📍 ${p.sender} (${p.angle}°)`, px, py - p.radius - 4);
                 ctx.restore();
@@ -1440,7 +1428,6 @@
             const startAngle = -0.4;
             const endAngle = startAngle - (mission.angle * Math.PI) / 180;
 
-            // Draw Sector Arc Shield Shape
             ctx.save();
             ctx.fillStyle = 'rgba(34, 211, 238, 0.18)';
             ctx.strokeStyle = '#22d3ee';
@@ -1452,7 +1439,6 @@
             ctx.fill();
             ctx.stroke();
 
-            // Meteor Incoming Marker at Sector Edge
             const meteorRad = (startAngle + endAngle) / 2;
             const mx = cx + Math.cos(meteorRad) * (maxR * 0.85);
             const my = cy + Math.sin(meteorRad) * (maxR * 0.85);
@@ -1462,7 +1448,7 @@
             ctx.textBaseline = 'middle';
             ctx.fillText("☄️", mx, my);
 
-            ctx.font = 'bold 11px font-arc, sans-serif';
+            ctx.font = 'bold 11px sans-serif';
             ctx.fillStyle = '#f87171';
             ctx.fillText(`중심각 ${mission.angle}° 메테오`, mx, my + 18);
             ctx.restore();
