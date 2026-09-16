@@ -234,23 +234,33 @@
                     </span>
                 </div>
 
-                <!-- Mission Formula & Sector Specs Clue Display (상시 노출 배너) -->
-                <div class="w-full max-w-2xl bg-slate-950 border-2 border-cyan-400/80 rounded-2xl p-4 md:p-5 shadow-inner mb-4">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 text-xs font-semibold text-cyan-300">
+                <!-- ★ [100% 누락 방지] 반지름 r과 중심각 x를 대문짝만하게 상시 고정 표시하는 핵심 제원 배너 -->
+                <div class="w-full max-w-2xl bg-slate-950 border-2 border-cyan-400/90 rounded-2xl p-4 md:p-5 shadow-2xl mb-4">
+                    <div class="flex items-center justify-between border-b border-cyan-800/60 pb-2 mb-3 text-xs font-semibold text-cyan-300">
                         <span class="flex items-center gap-1.5">
-                            <span>🛰️</span> 부채꼴 사령부 기본 제원 텔레메트리
+                            <span>🛰️</span> 부채꼴 사령부 핵심 제원 텔레메트리 (상시 고정)
                         </span>
-                        <!-- 항상 선명하게 유지되는 핵심 제원 뱃지 -->
-                        <span id="specs-always-visible" class="px-2.5 py-0.5 rounded bg-cyan-950/90 border border-cyan-400 text-yellow-300 font-mono font-bold">
-                            반지름 r = ?cm | 중심각 x = ?°
-                        </span>
+                        <span class="text-emerald-400 font-bold">● TELEMETRY LOCKED</span>
                     </div>
-                    <div id="mission-clue-display" class="text-lg md:text-2xl font-arc text-yellow-300 tracking-wide leading-relaxed">
+                    
+                    <!-- 항시 선명하게 유지되는 대형 제원 하이라이트 뱃지 -->
+                    <div class="flex flex-wrap items-center justify-center gap-3 bg-cyan-950/80 border-2 border-yellow-400/80 p-3 rounded-xl mb-3 shadow-inner">
+                        <div class="flex items-center gap-1.5 text-xs text-slate-300 font-bold">
+                            <span>📐</span> <span>작전 제원:</span>
+                        </div>
+                        <div id="specs-radius-badge" class="px-3.5 py-1.5 rounded-xl bg-cyan-500/30 text-cyan-200 border-2 border-cyan-400 font-mono text-base md:text-lg font-bold shadow">
+                            반지름 r = ?cm
+                        </div>
+                        <div id="specs-angle-badge" class="px-3.5 py-1.5 rounded-xl bg-yellow-500/30 text-yellow-300 border-2 border-yellow-400 font-mono text-base md:text-lg font-bold shadow">
+                            중심각 x = ?°
+                        </div>
+                    </div>
+
+                    <div id="mission-clue-display" class="text-base md:text-xl font-arc text-yellow-300 tracking-wide leading-relaxed">
                         부채꼴 궤도 수신 중...
                     </div>
                 </div>
 
-                <!-- Input Controls -->
                 <div class="w-full max-w-xl flex flex-col items-center gap-3">
                     <div id="step-instruction" class="text-sm md:text-base font-bold text-cyan-200 min-h-[44px] flex items-center justify-center px-2">
                         단계 안내 로딩 중...
@@ -899,6 +909,16 @@
             data.blueMembers = cleanMemberList(data.blueMembers || []);
             data.redMembers = cleanMemberList(data.redMembers || []);
 
+            // 구버전 DB 잔여 데이터에 혹시 radius가 누락되어 있을 경우의 자동 보정 방어벽
+            ['blueMission', 'redMission'].forEach(key => {
+                if (data[key]) {
+                    if (!data[key].radius) data[key].radius = 6;
+                    if (!data[key].angle) data[key].angle = 60;
+                    if (!data[key].arcNum) data[key].arcNum = 2;
+                    if (!data[key].areaNum) data[key].areaNum = 6;
+                }
+            });
+
             lastKnownRoomData = data;
 
             if (data.lastLaunch && (!window.lastObservedLaunchId || window.lastObservedLaunchId !== data.lastLaunch.id)) {
@@ -1046,8 +1066,10 @@
                 if (leadMission) {
                     const clueEl = document.getElementById('mission-clue-display');
                     if (clueEl) clueEl.innerText = `[선두팀 힌트] ${leadMission.fullClue}`;
-                    const specsAlways = document.getElementById('specs-always-visible');
-                    if (specsAlways) specsAlways.innerText = `반지름 r = ${leadMission.radius}cm | 중심각 x = ${leadMission.angle}°`;
+                    const rBadge = document.getElementById('specs-radius-badge');
+                    const aBadge = document.getElementById('specs-angle-badge');
+                    if (rBadge) rBadge.innerText = `반지름 r = ${leadMission.radius || 6}cm`;
+                    if (aBadge) aBadge.innerText = `중심각 x = ${leadMission.angle || 60}°`;
                 }
                 return;
             }
@@ -1061,33 +1083,66 @@
 
             if (!currentMission) return;
 
+            // 수치 보장
+            const rVal = currentMission.radius || 6;
+            const xVal = currentMission.angle || 60;
+            const lVal = currentMission.arcNum || 2;
+            const sVal = currentMission.areaNum || 6;
+
             const meteorEl = document.getElementById('current-meteor-name');
             if (meteorEl) meteorEl.innerText = `메테오 폭격 #${waveIndex}`;
 
-            // ★ [핵심 개선 1] 상단 고정 뱃지에 반지름 r과 중심각 x를 1~4단계 내내 상시 표시!
-            const specsAlways = document.getElementById('specs-always-visible');
-            if (specsAlways) {
-                specsAlways.innerText = `반지름 r = ${currentMission.radius}cm | 중심각 x = ${currentMission.angle}°`;
-            }
+            // ★ [100% 시각 보장] 핵심 제원 뱃지 상시 갱신 (반지름 r, 중심각 x)
+            const rBadge = document.getElementById('specs-radius-badge');
+            const aBadge = document.getElementById('specs-angle-badge');
+            if (rBadge) rBadge.innerText = `반지름 r = ${rVal}cm`;
+            if (aBadge) aBadge.innerText = `중심각 x = ${xVal}°`;
 
-            // ★ [핵심 개선 2] 2단계(호의 길이)와 3단계(넓이)에서도 반지름 r값을 누락 없이 친절하게 명시!
+            // ★ [100% 공식 대입 표시] 단계별 안내 및 공식 내 수치 완전 대입 출력
             const clueDisplay = document.getElementById('mission-clue-display');
             if (clueDisplay) {
                 if (currentStage === 0) {
                     clueDisplay.innerText = currentMission.fullClue;
                 } else if (currentStage === 1) {
-                    clueDisplay.innerHTML = `【기본 제원: <span class="text-teal-300">반지름 r = ${currentMission.radius}cm</span>, <span class="text-yellow-300">중심각 x = ${currentMission.angle}°</span>】<br>호의 길이 공식 <span class="text-white font-mono text-base">l = 2π × ${currentMission.radius} × (${currentMission.angle}/360)</span> 계산! (π 앞의 정수 계수 입력)`;
+                    clueDisplay.innerHTML = `
+                        <div class="text-sm md:text-base text-teal-300 font-bold mb-1">
+                            【호의 길이 공식 유도: l = 2πr × (x/360)】
+                        </div>
+                        <div class="text-lg md:text-2xl text-white font-mono font-bold tracking-wide">
+                            l = 2π × <span class="text-cyan-300 text-2xl font-black">${rVal}</span> × (<span class="text-yellow-300 text-2xl font-black">${xVal}</span>/360) = <span class="text-yellow-300 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-400">[ ? ]</span>π
+                        </div>
+                        <div class="text-xs text-slate-300 mt-1">
+                            ※ 계산된 정수 계수만 입력창에 입력하세요! (정답: ${lVal})
+                        </div>
+                    `;
                 } else if (currentStage === 2) {
-                    clueDisplay.innerHTML = `【기본 제원: <span class="text-teal-300">반지름 r = ${currentMission.radius}cm</span>, <span class="text-cyan-300">호 l = ${currentMission.arcNum}π</span>】<br>부채꼴 넓이 공식 <span class="text-white font-mono text-base">S = (1/2) × ${currentMission.radius} × ${currentMission.arcNum}π</span> 계산! (π 앞의 정수 계수 입력)`;
+                    clueDisplay.innerHTML = `
+                        <div class="text-sm md:text-base text-amber-300 font-bold mb-1">
+                            【부채꼴 넓이 공식 압축: S = (1/2)lr 또는 πr²(x/360)】
+                        </div>
+                        <div class="text-lg md:text-2xl text-white font-mono font-bold tracking-wide">
+                            S = (1/2) × <span class="text-cyan-300 text-2xl font-black">${rVal}</span> × <span class="text-teal-300 text-2xl font-black">${lVal}π</span> = <span class="text-yellow-300 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-400">[ ? ]</span>π
+                        </div>
+                        <div class="text-xs text-slate-300 mt-1">
+                            ※ 계산된 정수 계수만 입력창에 입력하세요! (정답: ${sVal})
+                        </div>
+                    `;
                 } else {
-                    clueDisplay.innerHTML = `【최종 락온: <span class="text-teal-300">반지름 r = ${currentMission.radius}cm</span>, <span class="text-yellow-300">중심각 ${currentMission.angle}°</span>】<br>모든 제원 압축 완료! 전술 모듈을 선택하고 쉴드를 격발하세요!`;
+                    clueDisplay.innerHTML = `
+                        <div class="text-base md:text-xl text-yellow-300 font-arc">
+                            【최종 락온 완료: 반지름 r = ${rVal}cm, 중심각 ${xVal}°, 면적 ${sVal}π cm²】
+                        </div>
+                        <div class="text-sm text-cyan-200 mt-1">
+                            모든 제원 압축 완료! 전술 모듈 카드를 골라 카운터 빔을 쏘세요!
+                        </div>
+                    `;
                 }
             }
 
             const angleLabel = document.getElementById('defense-angle-label');
-            if (angleLabel) angleLabel.innerText = `중심각 ${currentMission.angle}°`;
+            if (angleLabel) angleLabel.innerText = `중심각 ${xVal}°`;
             const radiusLabel = document.getElementById('defense-radius-label');
-            if (radiusLabel) radiusLabel.innerText = `반지름 r = ${currentMission.radius}cm`;
+            if (radiusLabel) radiusLabel.innerText = `반지름 r = ${rVal}cm`;
 
             const heatBadge = document.getElementById('heat-shield-badge');
             if (heatBadge) {
@@ -1140,9 +1195,9 @@
             const fireActionBtn = document.getElementById('fire-action-btn');
 
             if (instEl) {
-                if (currentStage === 0) instEl.innerText = "【1단계: 중심각 분석】 문제의 조건을 보고 부채꼴의 중심각 x° 숫자를 입력하세요!";
-                else if (currentStage === 1) instEl.innerText = `【2단계: 호의 길이 유도】 반지름 r=${currentMission.radius}cm와 중심각 x=${currentMission.angle}°로 계산한 호의 길이의 π 앞 계수를 입력하세요!`;
-                else if (currentStage === 2) instEl.innerText = `【3단계: 면적 압축】 반지름 r=${currentMission.radius}cm, 호 l=${currentMission.arcNum}π로 계산한 부채꼴 넓이의 π 앞 계수를 입력하세요!`;
+                if (currentStage === 0) instEl.innerText = "【1단계: 중심각 분석】 문제 힌트를 보고 중심각 x°의 숫자만 입력하세요!";
+                else if (currentStage === 1) instEl.innerHTML = `【2단계: 호의 길이 유도】 <span class="text-cyan-300">반지름 r=${rVal}cm</span>와 <span class="text-yellow-300">중심각 ${xVal}°</span>로 계산한 호의 길이의 π 앞 정수 계수를 입력하세요!`;
+                else if (currentStage === 2) instEl.innerHTML = `【3단계: 면적 압축】 <span class="text-cyan-300">반지름 r=${rVal}cm</span>, <span class="text-teal-300">호 l=${lVal}π</span>로 계산한 넓이의 π 앞 정수 계수를 입력하세요!`;
                 else instEl.innerText = "【4단계: 쉴드 격발】 최종 방어 에너지가 압축되었습니다! 전술 모듈을 선택하세요!";
             }
 
@@ -1162,7 +1217,7 @@
                     if (stepNumInput) {
                         stepNumInput.disabled = false;
                         stepNumInput.value = '';
-                        stepNumInput.placeholder = currentStage === 0 ? "중심각 x° 입력" : (currentStage === 1 ? `호의 길이 계수(정수) 입력` : `넓이 계수(정수) 입력`);
+                        stepNumInput.placeholder = currentStage === 0 ? "중심각 x° 숫자 입력" : (currentStage === 1 ? `호의 길이 [ ? ]π 정수 입력` : `넓이 [ ? ]π 정수 입력`);
                         stepNumInput.focus();
                     }
                 }
@@ -1640,8 +1695,11 @@
 
         function drawActiveArcShield(cx, cy, maxR, mission) {
             if (!mission) return;
+            const rVal = mission.radius || 6;
+            const xVal = mission.angle || 60;
+
             const startAngle = -0.4;
-            const endAngle = startAngle - (mission.angle * Math.PI) / 180;
+            const endAngle = startAngle - (xVal * Math.PI) / 180;
 
             ctx.save();
             ctx.fillStyle = 'rgba(34, 211, 238, 0.18)';
@@ -1655,13 +1713,13 @@
             ctx.stroke();
 
             // Radius guideline dimension line
-            const midRad = startAngle - (mission.angle * Math.PI) / 360;
+            const midRad = startAngle - (xVal * Math.PI) / 360;
             const rX = cx + Math.cos(startAngle) * (maxR * 0.45);
             const rY = cy + Math.sin(startAngle) * (maxR * 0.45);
-            ctx.font = 'bold 11px monospace';
+            ctx.font = 'bold 12px monospace';
             ctx.fillStyle = '#67e8f9';
             ctx.textAlign = 'center';
-            ctx.fillText(`r = ${mission.radius}cm`, rX, rY - 8);
+            ctx.fillText(`반지름 r = ${rVal}cm`, rX, rY - 8);
 
             const meteorRad = (startAngle + endAngle) / 2;
             const mx = cx + Math.cos(meteorRad) * (maxR * 0.85);
@@ -1674,7 +1732,7 @@
 
             ctx.font = 'bold 11px sans-serif';
             ctx.fillStyle = '#f87171';
-            ctx.fillText(`중심각 ${mission.angle}° 메테오`, mx, my + 18);
+            ctx.fillText(`중심각 ${xVal}° 메테오`, mx, my + 18);
             ctx.restore();
         }
     </script>
