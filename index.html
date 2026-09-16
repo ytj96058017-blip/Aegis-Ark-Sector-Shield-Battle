@@ -240,7 +240,7 @@
                         <span class="flex items-center gap-1.5">
                             <span>🛰️</span> 부채꼴 사령부 핵심 제원 텔레메트리 (상시 고정)
                         </span>
-                        <span class="text-emerald-400 font-bold">● TELEMETRY LOCKED</span>
+                        <span id="telemetry-status-tag" class="text-emerald-400 font-bold">● TELEMETRY LOCKED</span>
                     </div>
                     
                     <!-- 항시 선명하게 유지되는 대형 제원 하이라이트 뱃지 -->
@@ -253,6 +253,12 @@
                         </div>
                         <div id="specs-angle-badge" class="px-3.5 py-1.5 rounded-xl bg-yellow-500/30 text-yellow-300 border-2 border-yellow-400 font-mono text-base md:text-lg font-bold shadow">
                             중심각 x = ?°
+                        </div>
+                        <div id="specs-arc-badge" class="px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-600 font-mono text-sm md:text-base font-bold shadow">
+                            호 l = ?
+                        </div>
+                        <div id="specs-area-badge" class="px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-600 font-mono text-sm md:text-base font-bold shadow">
+                            넓이 S = ?
                         </div>
                     </div>
 
@@ -587,34 +593,30 @@
         /*
            중1 수학 원과 부채꼴 핵심 제원 생성기:
            - 반지름 r, 중심각 x°
-           - 호의 길이 l = 2πr * (x/360) 이 자연수(정수) π 로 딱 떨어지도록 보장!
-           - 넓이 S = πr² * (x/360) 도 자연수(정수) π 로 딱 떨어지도록 보장!
-           - 이에 따라 학생들이 분수 입력 고민 없이 정수 계수를 입력창에 명쾌하게 작성 가능!
+           - 원 전체에 대한 분수 비율을 바탕으로 1단계에서 중심각을 스스로 추론
+           - 2단계(호의 길이), 3단계(넓이)가 앞 단계 결과를 연계하여 자연스럽게 도출되도록 구성
         */
         function generateArcMission(waveIndex = 1) {
             let mission = null;
             let attempts = 0;
 
-            // 정수 파이(π)로 완벽하게 나누어떨어지는 아름다운 (r, x) 조합 테이블
+            // 중1 학생들이 직관적으로 생각하기 좋은 (r, x, 비율, 호, 넓이) 제원 풀
             const integerSectorPool = [
-                { r: 6, x: 60, l: 2, s: 6 },     // 2π, 6π
-                { r: 6, x: 120, l: 4, s: 12 },   // 4π, 12π
-                { r: 6, x: 30, l: 1, s: 3 },     // 1π, 3π
-                { r: 8, x: 45, l: 2, s: 8 },     // 2π, 8π
-                { r: 8, x: 90, l: 4, s: 16 },    // 4π, 16π
-                { r: 8, x: 135, l: 6, s: 24 },   // 6π, 24π
-                { r: 9, x: 40, l: 2, s: 9 },     // 2π, 9π
-                { r: 9, x: 80, l: 4, s: 18 },    // 4π, 18π
-                { r: 10, x: 36, l: 2, s: 10 },   // 2π, 10π
-                { r: 10, x: 72, l: 4, s: 20 },   // 4π, 20π
-                { r: 10, x: 108, l: 6, s: 30 },  // 6π, 30π
-                { r: 12, x: 30, l: 2, s: 12 },   // 2π, 12π
-                { r: 12, x: 60, l: 4, s: 24 },   // 4π, 24π
-                { r: 12, x: 90, l: 6, s: 36 },   // 6π, 36π
-                { r: 12, x: 120, l: 8, s: 48 },  // 8π, 48π
-                { r: 12, x: 150, l: 10, s: 60 }, // 10π, 60π
-                { r: 18, x: 20, l: 2, s: 18 },   // 2π, 18π
-                { r: 18, x: 40, l: 4, s: 36 }    // 4π, 36π
+                { r: 6, x: 60, fracText: "1/6", l: 2, s: 6 },     // 360 * 1/6 = 60°
+                { r: 6, x: 120, fracText: "1/3", l: 4, s: 12 },   // 360 * 1/3 = 120°
+                { r: 6, x: 30, fracText: "1/12", l: 1, s: 3 },    // 360 * 1/12 = 30°
+                { r: 8, x: 45, fracText: "1/8", l: 2, s: 8 },     // 360 * 1/8 = 45°
+                { r: 8, x: 90, fracText: "1/4", l: 4, s: 16 },    // 360 * 1/4 = 90°
+                { r: 8, x: 135, fracText: "3/8", l: 6, s: 24 },   // 360 * 3/8 = 135°
+                { r: 9, x: 40, fracText: "1/9", l: 2, s: 9 },     // 360 * 1/9 = 40°
+                { r: 9, x: 80, fracText: "2/9", l: 4, s: 18 },    // 360 * 2/9 = 80°
+                { r: 10, x: 36, fracText: "1/10", l: 2, s: 10 },  // 360 * 1/10 = 36°
+                { r: 10, x: 72, fracText: "1/5", l: 4, s: 20 },   // 360 * 1/5 = 72°
+                { r: 12, x: 30, fracText: "1/12", l: 2, s: 12 },  // 360 * 1/12 = 30°
+                { r: 12, x: 60, fracText: "1/6", l: 4, s: 24 },   // 360 * 1/6 = 60°
+                { r: 12, x: 90, fracText: "1/4", l: 6, s: 36 },   // 360 * 1/4 = 90°
+                { r: 18, x: 20, fracText: "1/18", l: 2, s: 18 },  // 360 * 1/18 = 20°
+                { r: 18, x: 40, fracText: "1/9", l: 4, s: 36 }    // 360 * 1/9 = 40°
             ];
 
             while (attempts < 100) {
@@ -622,15 +624,11 @@
                 const item = integerSectorPool[Math.floor(Math.random() * integerSectorPool.length)];
                 const r = item.r;
                 const x = item.x;
+                const frac = item.fracText;
                 const lNum = item.l;
                 const sNum = item.s;
 
-                const clues = [
-                    `반지름 r = ${r}cm, 호의 길이 l = ${lNum}π cm 인 부채꼴의 [중심각 x°] 를 구하라!`,
-                    `반지름 r = ${r}cm, 넓이 S = ${sNum}π cm² 인 부채꼴의 [중심각 x°] 를 구하라!`,
-                    `반지름 r = ${r}cm 원에서 중심각 x°가 호의 길이 ${lNum}π cm 를 만들 때의 [중심각 x°] 는?`
-                ];
-                const fullClue = clues[(waveIndex - 1) % clues.length];
+                const fullClue = `반지름 r = ${r}cm인 원에서 부채꼴의 호가 원 전체 둘레의 [ ${frac} ] 일 때, 이 부채꼴의 [중심각 x°] 를 구하라!`;
 
                 if (!recentCluesSet.has(fullClue) || attempts > 70) {
                     recentCluesSet.add(fullClue);
@@ -642,6 +640,7 @@
                     mission = {
                         radius: r,
                         angle: x,
+                        fracText: frac,
                         arcNum: lNum,
                         areaNum: sNum,
                         fullClue: fullClue
@@ -651,7 +650,7 @@
             }
 
             if (!mission) {
-                mission = { radius: 6, angle: 60, arcNum: 2, areaNum: 6, fullClue: "반지름 r = 6cm, 호의 길이 l = 2π cm 인 부채꼴의 [중심각 x°] 를 구하라!" };
+                mission = { radius: 6, angle: 60, fracText: "1/6", arcNum: 2, areaNum: 6, fullClue: "반지름 r = 6cm인 원에서 부채꼴의 호가 원 전체 둘레의 [ 1/6 ] 일 때, 이 부채꼴의 [중심각 x°] 를 구하라!" };
             }
             return mission;
         }
@@ -1149,33 +1148,35 @@
                 statusTag.className = currentStage >= 3 ? "text-emerald-400 font-bold" : "text-yellow-400 font-bold animate-pulse";
             }
 
-            // ★ 단계별 문제 안내문 (1단계에선 중심각 정답 절대 노출 금지!)
+            // ★ 단계별 문제 안내문 (힌트를 직접 떠먹여주지 않고 스스로 공식을 세우도록 개선)
             const clueDisplay = document.getElementById('mission-clue-display');
             if (clueDisplay) {
                 if (currentStage === 0) {
                     clueDisplay.innerText = currentMission.fullClue;
                 } else if (currentStage === 1) {
                     clueDisplay.innerHTML = `
-                        <div class="text-sm md:text-base text-teal-300 font-bold mb-1">
-                            【호의 길이 공식 유도: l = 2πr × (x/360)】
+                        <div class="text-base md:text-xl text-teal-300 font-arc mb-1">
+                            【2단계: 호의 길이 유도】
                         </div>
-                        <div class="text-lg md:text-2xl text-white font-mono font-bold tracking-wide">
-                            l = 2π × <span class="text-cyan-300 text-2xl font-black">${rVal}</span> × (<span class="text-yellow-300 text-2xl font-black">${xVal}</span>/360) = <span class="text-yellow-300 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-400">[ ? ]</span>π
+                        <div class="text-base md:text-lg text-white font-bold tracking-wide leading-relaxed">
+                            반지름 <span class="text-cyan-300 font-mono">r = ${rVal}cm</span>와 락온된 중심각 <span class="text-yellow-300 font-mono">x = ${xVal}°</span>를 이용하여<br class="hidden sm:inline">
+                            이 부채꼴의 <span class="text-teal-300 font-arc">[ 호의 길이 l ]</span> 을 계산하라!
                         </div>
-                        <div class="text-xs text-slate-300 mt-1">
-                            ※ 계산된 정수 계수만 입력창에 입력하세요!
+                        <div class="text-xs text-slate-400 mt-2 font-mono">
+                            ※ 호의 길이 l = <span class="text-yellow-300 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-400 font-bold">[ ? ]</span>π cm (π 앞의 정수 계수 입력)
                         </div>
                     `;
                 } else if (currentStage === 2) {
                     clueDisplay.innerHTML = `
-                        <div class="text-sm md:text-base text-amber-300 font-bold mb-1">
-                            【부채꼴 넓이 공식 압축: S = (1/2)lr 또는 πr²(x/360)】
+                        <div class="text-base md:text-xl text-amber-300 font-arc mb-1">
+                            【3단계: 부채꼴 넓이 압축】
                         </div>
-                        <div class="text-lg md:text-2xl text-white font-mono font-bold tracking-wide">
-                            S = (1/2) × <span class="text-cyan-300 text-2xl font-black">${rVal}</span> × <span class="text-teal-300 text-2xl font-black">${lVal}π</span> = <span class="text-yellow-300 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-400">[ ? ]</span>π
+                        <div class="text-base md:text-lg text-white font-bold tracking-wide leading-relaxed">
+                            반지름 <span class="text-cyan-300 font-mono">r = ${rVal}cm</span>와 앞서 구한 호의 길이 <span class="text-teal-300 font-mono">l = ${lVal}π cm</span>를 바탕으로<br class="hidden sm:inline">
+                            이 부채꼴의 <span class="text-amber-300 font-arc">[ 넓이 S ]</span> 를 계산하라!
                         </div>
-                        <div class="text-xs text-slate-300 mt-1">
-                            ※ 계산된 정수 계수만 입력창에 입력하세요!
+                        <div class="text-xs text-slate-400 mt-2 font-mono">
+                            ※ 부채꼴 넓이 S = <span class="text-yellow-300 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-400 font-bold">[ ? ]</span>π cm² (π 앞의 정수 계수 입력)
                         </div>
                     `;
                 } else {
@@ -1248,9 +1249,9 @@
             const fireActionBtn = document.getElementById('fire-action-btn');
 
             if (instEl) {
-                if (currentStage === 0) instEl.innerText = "【1단계: 중심각 분석】 문제 힌트를 보고 중심각 x°의 숫자만 입력하세요!";
-                else if (currentStage === 1) instEl.innerHTML = `【2단계: 호의 길이 유도】 <span class="text-cyan-300">반지름 r=${rVal}cm</span>와 <span class="text-yellow-300">중심각 ${xVal}°</span>로 계산한 호의 길이의 π 앞 정수 계수를 입력하세요!`;
-                else if (currentStage === 2) instEl.innerHTML = `【3단계: 면적 압축】 <span class="text-cyan-300">반지름 r=${rVal}cm</span>, <span class="text-teal-300">호 l=${lVal}π</span>로 계산한 넓이의 π 앞 정수 계수를 입력하세요!`;
+                if (currentStage === 0) instEl.innerText = "【1단계: 중심각 분석】 원과 부채꼴의 호의 비례를 분석하여 중심각 x°의 값을 계산하세요!";
+                else if (currentStage === 1) instEl.innerText = "【2단계: 호의 길이 유도】 부채꼴 호의 길이 공식을 적용하여 π 앞의 정수 계수를 계산하세요!";
+                else if (currentStage === 2) instEl.innerText = "【3단계: 면적 압축】 부채꼴 넓이 공식을 적용하여 넓이의 π 앞 정수 계수를 계산하세요!";
                 else instEl.innerText = "【4단계: 쉴드 격발】 최종 방어 에너지가 압축되었습니다! 전술 모듈을 선택하세요!";
             }
 
