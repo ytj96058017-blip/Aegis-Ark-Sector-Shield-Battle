@@ -4,15 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>에이지스 아크: 부채꼴 방어막 배틀 - 중1 수학 실시간 4인 협동 아케이드</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Jua', 'Inter', sans-serif; }
-        .font-arc { font-family: 'Black Han Sans', sans-serif; }
+        /* Fallback rules to guarantee styling even during CDN load delays */
+        body { 
+            font-family: 'Jua', 'Inter', sans-serif;
+            color: #f8fafc;
+            background-color: #020617;
+            margin: 0;
+            padding: 0;
+        }
+        .hidden { 
+            display: none !important; 
+        }
+        .font-arc { 
+            font-family: 'Black Han Sans', sans-serif; 
+        }
         .space-bg {
             background: radial-gradient(circle at 50% 20%, #030712 0%, #020617 65%, #000000 100%);
+            min-height: 100vh;
         }
         .shield-pulse {
             animation: shieldPulse 2.2s infinite ease-in-out;
@@ -70,6 +83,7 @@
                 </p>
             </div>
 
+            <!-- Nickname & Room Code Inputs -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                 <div class="bg-slate-950/80 p-5 rounded-2xl border border-slate-700">
                     <label class="block text-sm font-semibold mb-2 text-cyan-300 flex items-center gap-2">
@@ -88,20 +102,28 @@
             </div>
 
             <!-- Team Select Buttons -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                <button onclick="joinTeam('blue')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-cyan-700 to-blue-600 hover:from-cyan-600 hover:to-blue-500 transition-all duration-200 shadow-xl border-2 border-cyan-300 flex items-center justify-center gap-3 transform hover:-translate-y-1">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <button onclick="joinTeam('blue')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-cyan-700 to-blue-600 hover:from-cyan-600 hover:to-blue-500 transition-all duration-200 shadow-xl border-2 border-cyan-300 flex items-center justify-center gap-3 transform hover:-translate-y-1 active:scale-95">
                     <span class="text-3xl">🔵</span>
                     <span>청군 코어 (블루 아크) 기동</span>
                 </button>
-                <button onclick="joinTeam('red')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 transition-all duration-200 shadow-xl border-2 border-rose-400 flex items-center justify-center gap-3 transform hover:-translate-y-1">
+                <button onclick="joinTeam('red')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 transition-all duration-200 shadow-xl border-2 border-rose-400 flex items-center justify-center gap-3 transform hover:-translate-y-1 active:scale-95">
                     <span class="text-3xl">🔴</span>
                     <span>홍군 코어 (레드 아크) 기동</span>
                 </button>
             </div>
 
+            <!-- Teacher Spectator Mode Button -->
+            <div class="mb-5">
+                <button onclick="joinSpectator()" class="w-full py-4 rounded-2xl font-arc text-lg md:text-xl bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 hover:from-purple-900 hover:to-indigo-900 transition-all duration-200 shadow-2xl border-2 border-purple-400 text-purple-200 flex items-center justify-center gap-3 transform hover:-translate-y-0.5 active:scale-95">
+                    <span class="text-2xl animate-pulse">📺</span>
+                    <span class="tracking-wide font-bold">교사 전용 / 대형 스크린 중계석 입장 (학생 명단 미포함 관전)</span>
+                </button>
+            </div>
+
             <!-- Lobby Ghost Reset Button -->
             <div class="flex justify-center mb-4">
-                <button onclick="resetCurrentRoomData()" class="px-4 py-2 bg-rose-950/90 hover:bg-rose-900 border border-rose-500/70 rounded-xl text-xs text-rose-300 font-bold transition flex items-center gap-2 shadow">
+                <button onclick="resetCurrentRoomData()" class="px-4 py-2 bg-rose-950/90 hover:bg-rose-900 border border-rose-500/70 rounded-xl text-xs text-rose-300 font-bold transition flex items-center gap-2 shadow active:scale-95">
                     <span>🧹</span><span>로비 대원 명단 초기화 (유령 정리)</span>
                 </button>
             </div>
@@ -115,13 +137,17 @@
             </div>
         </div>
 
-        <!-- 2. Battle Screen -->
+        <!-- 2. Battle Screen (Hidden in Lobby) -->
         <div id="battle-screen" class="hidden flex flex-col gap-4">
             
             <!-- Quick Reset Bar for Ghost Cleanup -->
-            <div class="flex justify-end">
+            <div class="flex items-center justify-between px-1">
+                <div class="flex items-center gap-2 text-xs font-mono text-cyan-400">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span>AEGIS_RADAR // 5-WAVE ARC SECTOR DEFENSE</span>
+                </div>
                 <button onclick="resetCurrentRoomData()" class="px-3.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/60 rounded-xl text-xs text-rose-300 font-bold transition active:scale-95 shadow flex items-center gap-1.5">
-                    <span>🧹</span><span>유령 대원 명단 초기화 (0명 리셋)</span>
+                    <span>🧹</span><span>대원 명단 리셋 (0명 청소)</span>
                 </button>
             </div>
 
@@ -223,6 +249,35 @@
                 <div class="w-full max-w-xl flex flex-col items-center gap-3">
                     <div id="step-instruction" class="text-sm md:text-base font-bold text-cyan-200 min-h-[44px] flex items-center justify-center px-2">
                         단계 안내 로딩 중...
+                    </div>
+
+                    <!-- Spectator Dual-Team Live Broadcast Panel -->
+                    <div id="spectator-broadcast-panel" class="hidden w-full max-w-2xl bg-gradient-to-r from-slate-900/90 via-purple-950/80 to-slate-900/90 border-2 border-purple-400/80 rounded-2xl p-4 shadow-2xl">
+                        <div class="flex items-center justify-between border-b border-purple-500/40 pb-2 mb-3">
+                            <span class="text-xs font-mono text-purple-300 font-bold flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+                                <span>ON-AIR // 대형 스크린 실시간 공식 중계석</span>
+                            </span>
+                            <span class="text-[11px] font-arc text-yellow-300">교사 화면: 학생 턴 미개입</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                            <div class="p-2.5 rounded-xl bg-cyan-950/60 border border-cyan-500/50">
+                                <div class="text-xs text-cyan-300 font-bold font-arc mb-1 flex items-center justify-between">
+                                    <span>🔵 블루 아크 (청군)</span>
+                                    <span id="spec-blue-wave" class="text-[10px] text-yellow-300 font-mono">웨이브 #1</span>
+                                </div>
+                                <div id="spec-blue-stage" class="text-xs font-bold text-white mb-1">1단계: 중심각</div>
+                                <div id="spec-blue-actor" class="text-[11px] text-cyan-200 font-mono truncate">주자: 대기 중</div>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-rose-950/60 border border-rose-500/50">
+                                <div class="text-xs text-rose-300 font-bold font-arc mb-1 flex items-center justify-between">
+                                    <span>🔴 레드 이지스 (홍군)</span>
+                                    <span id="spec-red-wave" class="text-[10px] text-yellow-300 font-mono">웨이브 #1</span>
+                                </div>
+                                <div id="spec-red-stage" class="text-xs font-bold text-white mb-1">1단계: 중심각</div>
+                                <div id="spec-red-actor" class="text-[11px] text-rose-200 font-mono truncate">주자: 대기 중</div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Number Input Control (Step 0, 1, 2) -->
@@ -386,7 +441,6 @@
         </div>
     </div>
 
-    <!-- Web Audio API Sound Synthesizer -->
     <script>
         class SoundFX {
             constructor() {
@@ -461,10 +515,9 @@
         const sfx = new SoundFX();
     </script>
 
-    <!-- Main Game Logic and Firestore Synchronizer -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeFirestore, memoryLocalCache, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChxrOzoTxFMy_BvkvNZLXAp1oRvN7Fb1g",
@@ -481,7 +534,9 @@
 
         try {
             const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
+            db = initializeFirestore(app, {
+                localCache: memoryLocalCache()
+            });
             const badge = document.getElementById('db-status-badge');
             if (badge) {
                 badge.innerText = "🟢 클라우드 DB 정상 연결!";
@@ -695,6 +750,8 @@
                         if (!msg) return;
                         if (msg.type === 'LOCAL_PING' && msg.team === myTeam) {
                             addTacticalPing(msg.angle, msg.sender);
+                        } else if (msg.type === 'SYNC_STATE' && msg.payload) {
+                            applyRoomState(msg.payload);
                         }
                     };
                 }
@@ -732,6 +789,52 @@
             }
 
             window.addEventListener('beforeunload', leaveRoomCleanup);
+        };
+
+        // Teacher Spectator / Broadcaster Entry Function
+        window.joinSpectator = async function() {
+            const codeInput = document.getElementById('room-code');
+            const code = (codeInput ? codeInput.value.trim() : '') || 'aegis101';
+
+            currentUserName = '교사 중계석';
+            currentRoomCode = code;
+            myTeam = 'spectator';
+
+            try {
+                if (window.BroadcastChannel) {
+                    if (bc) bc.close();
+                    bc = new BroadcastChannel(`aegis_arc_${currentRoomCode}`);
+                    bc.onmessage = (event) => {
+                        const msg = event.data;
+                        if (!msg) return;
+                        if (msg.type === 'LOCAL_PING') {
+                            addTacticalPing(msg.angle, msg.sender);
+                        } else if (msg.type === 'SYNC_STATE' && msg.payload) {
+                            applyRoomState(msg.payload);
+                        }
+                    };
+                }
+            } catch (e) {}
+
+            document.getElementById('lobby-screen').classList.add('hidden');
+            document.getElementById('battle-screen').classList.remove('hidden');
+            initArcCanvas();
+            sfx.victoryFanfare();
+
+            try {
+                if (db) {
+                    const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
+                    startFirestoreListener(roomRef);
+                    const snap = await getDoc(roomRef);
+                    if (snap.exists()) {
+                        applyRoomState(snap.data());
+                    } else {
+                        applyRoomState(createInitialRoomData());
+                    }
+                }
+            } catch (err) {
+                applyRoomState(createInitialRoomData());
+            }
         };
 
         async function leaveRoomCleanup() {
@@ -798,7 +901,7 @@
             // Trigger Tactical Ping
             if (data.lastPing && (!window.lastObservedPingId || window.lastObservedPingId !== data.lastPing.id)) {
                 window.lastObservedPingId = data.lastPing.id;
-                if (data.lastPing.team === myTeam) {
+                if (myTeam === 'spectator' || data.lastPing.team === myTeam) {
                     addTacticalPing(data.lastPing.angle, data.lastPing.sender);
                 }
             }
@@ -829,6 +932,11 @@
 
         async function syncStateUpdate(nextData) {
             applyRoomState(nextData);
+            if (bc) {
+                try {
+                    bc.postMessage({ type: 'SYNC_STATE', payload: nextData });
+                } catch (e) {}
+            }
             if (!useFallback && db) {
                 try {
                     const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
@@ -867,6 +975,70 @@
 
         function updatePipelineUI(data) {
             const team = myTeam;
+
+            // Handle Spectator / Broadcaster View
+            if (team === 'spectator') {
+                const specPanel = document.getElementById('spectator-broadcast-panel');
+                const numControl = document.getElementById('number-input-control');
+                const tacticalControl = document.getElementById('tactical-launch-control');
+                const waitingNotice = document.getElementById('waiting-notice');
+
+                if (specPanel) specPanel.classList.remove('hidden');
+                if (numControl) numControl.classList.add('hidden');
+                if (tacticalControl) tacticalControl.classList.add('hidden');
+                if (waitingNotice) waitingNotice.classList.add('hidden');
+
+                const teamBadge = document.getElementById('my-team-badge');
+                if (teamBadge) {
+                    teamBadge.innerText = `📺 ON-AIR // 교사 공식 중계석`;
+                    teamBadge.className = 'text-xs px-3.5 py-1.5 bg-purple-500/30 text-purple-300 border border-purple-400 rounded-full font-bold font-arc animate-pulse';
+                }
+                const roleBadge = document.getElementById('my-role-badge');
+                if (roleBadge) {
+                    roleBadge.innerText = `관전 모드 (학생 풀이 미방해)`;
+                    roleBadge.className = 'text-xs px-3.5 py-1.5 bg-slate-800 text-slate-300 border border-slate-600 rounded-full font-bold font-mono';
+                }
+
+                const stageNames = ["① 중심각 분석", "② 호의 길이 유도", "③ 면적 압축", "④ 쉴드 격발 & 카운터 🚀"];
+                const bMembers = cleanMemberList(data.blueMembers || []);
+                const rMembers = cleanMemberList(data.redMembers || []);
+                const bStage = data.blueStage || 0;
+                const rStage = data.redStage || 0;
+                const bWave = data.blueWave || 1;
+                const rWave = data.redWave || 1;
+                const bScore = data.blueScore || 0;
+                const rScore = data.redScore || 0;
+
+                const bActorIdx = getStageActorIndex(bStage, Math.max(1, bMembers.length), bWave);
+                const rActorIdx = getStageActorIndex(rStage, Math.max(1, rMembers.length), rWave);
+
+                const specBWave = document.getElementById('spec-blue-wave');
+                const specBStage = document.getElementById('spec-blue-stage');
+                const specBActor = document.getElementById('spec-blue-actor');
+                if (specBWave) specBWave.innerText = `웨이브 #${bWave}/5 (${bScore}회 성공)`;
+                if (specBStage) specBStage.innerText = stageNames[bStage] || '대기 중';
+                if (specBActor) specBActor.innerText = `현재 주자: ${bMembers[bActorIdx] ? bMembers[bActorIdx].name : '대기 중'}`;
+
+                const specRWave = document.getElementById('spec-red-wave');
+                const specRStage = document.getElementById('spec-red-stage');
+                const specRActor = document.getElementById('spec-red-actor');
+                if (specRWave) specRWave.innerText = `웨이브 #${rWave}/5 (${rScore}회 성공)`;
+                if (specRStage) specRStage.innerText = stageNames[rStage] || '대기 중';
+                if (specRActor) specRActor.innerText = `현재 주자: ${rMembers[rActorIdx] ? rMembers[rActorIdx].name : '대기 중'}`;
+
+                const instEl = document.getElementById('step-instruction');
+                if (instEl) {
+                    instEl.innerHTML = `<span class="text-yellow-300">📡 [실시간 중계 중] 양 팀의 부채꼴 방어막 배틀을 관전하고 있습니다.</span>`;
+                }
+
+                const leadMission = bScore >= rScore ? data.blueMission : data.redMission;
+                if (leadMission) {
+                    const clueEl = document.getElementById('mission-clue-display');
+                    if (clueEl) clueEl.innerText = `[선두팀 힌트] ${leadMission.fullClue}`;
+                }
+                return;
+            }
+
             const myRawMembers = team === 'blue' ? (data.blueMembers || []) : (data.redMembers || []);
             const myMembers = cleanMemberList(myRawMembers);
             const currentStage = team === 'blue' ? (data.blueStage || 0) : (data.redStage || 0);
@@ -1218,14 +1390,12 @@
             sfx.radarPing();
             addTacticalPing(roundAngle, currentUserName || '항해관');
 
-            // BroadcastChannel for instant free local/peer-to-peer ping
             if (bc) {
                 try {
                     bc.postMessage({ type: 'LOCAL_PING', team: myTeam, angle: roundAngle, sender: currentUserName || '항해관' });
                 } catch (e) {}
             }
 
-            // Throttled Firestore ping (maximum once every 2.5 seconds to prevent spam cost)
             const now = Date.now();
             if (now - lastPingSentTime > 2500 && lastKnownRoomData) {
                 lastPingSentTime = now;
@@ -1348,7 +1518,9 @@
             // 3. Draw Active Sector Arc Shield & Meteor Warning
             if (lastKnownRoomData) {
                 const data = lastKnownRoomData;
-                const mission = myTeam === 'blue' ? data.blueMission : data.redMission;
+                const mission = myTeam === 'spectator'
+                    ? ((data.blueScore || 0) >= (data.redScore || 0) ? data.blueMission : data.redMission)
+                    : (myTeam === 'blue' ? data.blueMission : data.redMission);
                 drawActiveArcShield(cx, cy, maxR, mission);
             }
 
