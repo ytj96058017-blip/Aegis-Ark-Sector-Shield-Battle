@@ -1092,13 +1092,64 @@
             const meteorEl = document.getElementById('current-meteor-name');
             if (meteorEl) meteorEl.innerText = `메테오 폭격 #${waveIndex}`;
 
-            // ★ [100% 시각 보장] 핵심 제원 뱃지 상시 갱신 (반지름 r, 중심각 x)
+            // ★ [스포일러 100% 원천 차단] 4대 제원 단계별 순차 해금 뱃지 UI 갱신
             const rBadge = document.getElementById('specs-radius-badge');
             const aBadge = document.getElementById('specs-angle-badge');
-            if (rBadge) rBadge.innerText = `반지름 r = ${rVal}cm`;
-            if (aBadge) aBadge.innerText = `중심각 x = ${xVal}°`;
+            const lBadge = document.getElementById('specs-arc-badge');
+            const sBadge = document.getElementById('specs-area-badge');
+            const statusTag = document.getElementById('telemetry-status-tag');
 
-            // ★ [100% 공식 대입 표시] 단계별 안내 및 공식 내 수치 완전 대입 출력
+            // 반지름 r은 1단계부터 문제에 주어진 기본값이므로 상시 노출
+            if (rBadge) {
+                rBadge.innerText = `반지름 r = ${rVal}cm`;
+                rBadge.className = 'px-3 py-1 rounded-xl bg-cyan-500/30 text-cyan-200 border-2 border-cyan-400 font-mono text-sm md:text-base font-bold shadow';
+            }
+
+            // 중심각 x: 1단계에서는 정답이므로 스포일러 방지 (?° 대기), 2단계부터 락온 해금!
+            if (aBadge) {
+                if (currentStage >= 1) {
+                    aBadge.innerText = `중심각 x = ${xVal}° (락온!)`;
+                    aBadge.className = 'px-3 py-1 rounded-xl bg-yellow-500/30 text-yellow-300 border-2 border-yellow-400 font-mono text-sm md:text-base font-bold shadow animate-pulse';
+                } else {
+                    aBadge.innerText = `중심각 x = ?° (분석 대기)`;
+                    aBadge.className = 'px-3 py-1 rounded-xl bg-slate-800 text-slate-400 border border-slate-600 font-mono text-sm md:text-base font-bold';
+                }
+            }
+
+            // 호의 길이 l: 2단계 통과 후 해금
+            if (lBadge) {
+                if (currentStage >= 2) {
+                    lBadge.innerText = `호 l = ${lVal}π cm (유도 완료!)`;
+                    lBadge.className = 'px-3 py-1 rounded-xl bg-teal-500/30 text-teal-300 border-2 border-teal-400 font-mono text-sm md:text-base font-bold shadow';
+                } else if (currentStage === 1) {
+                    lBadge.innerText = `호 l = [유도 계산 중]`;
+                    lBadge.className = 'px-3 py-1 rounded-xl bg-cyan-950 text-cyan-300 border border-cyan-400 font-mono text-sm md:text-base font-bold animate-pulse';
+                } else {
+                    lBadge.innerText = `호 l = ?`;
+                    lBadge.className = 'px-3 py-1 rounded-xl bg-slate-800 text-slate-400 border border-slate-600 font-mono text-sm md:text-base font-bold';
+                }
+            }
+
+            // 넓이 S: 3단계 통과 후 해금
+            if (sBadge) {
+                if (currentStage >= 3) {
+                    sBadge.innerText = `넓이 S = ${sVal}π cm² (압축 완료!)`;
+                    sBadge.className = 'px-3 py-1 rounded-xl bg-emerald-500/30 text-emerald-300 border-2 border-emerald-400 font-mono text-sm md:text-base font-bold shadow';
+                } else if (currentStage === 2) {
+                    sBadge.innerText = `넓이 S = [압축 계산 중]`;
+                    sBadge.className = 'px-3 py-1 rounded-xl bg-amber-950 text-amber-300 border border-amber-400 font-mono text-sm md:text-base font-bold animate-pulse';
+                } else {
+                    sBadge.innerText = `넓이 S = ?`;
+                    sBadge.className = 'px-3 py-1 rounded-xl bg-slate-800 text-slate-400 border border-slate-600 font-mono text-sm md:text-base font-bold';
+                }
+            }
+
+            if (statusTag) {
+                statusTag.innerText = currentStage >= 3 ? "● ALL SPECS LOCKED" : `● STAGE ${currentStage + 1} INTERLOCKING`;
+                statusTag.className = currentStage >= 3 ? "text-emerald-400 font-bold" : "text-yellow-400 font-bold animate-pulse";
+            }
+
+            // ★ 단계별 문제 안내문 (1단계에선 중심각 정답 절대 노출 금지!)
             const clueDisplay = document.getElementById('mission-clue-display');
             if (clueDisplay) {
                 if (currentStage === 0) {
@@ -1112,7 +1163,7 @@
                             l = 2π × <span class="text-cyan-300 text-2xl font-black">${rVal}</span> × (<span class="text-yellow-300 text-2xl font-black">${xVal}</span>/360) = <span class="text-yellow-300 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-400">[ ? ]</span>π
                         </div>
                         <div class="text-xs text-slate-300 mt-1">
-                            ※ 계산된 정수 계수만 입력창에 입력하세요! (정답: ${lVal})
+                            ※ 계산된 정수 계수만 입력창에 입력하세요!
                         </div>
                     `;
                 } else if (currentStage === 2) {
@@ -1124,7 +1175,7 @@
                             S = (1/2) × <span class="text-cyan-300 text-2xl font-black">${rVal}</span> × <span class="text-teal-300 text-2xl font-black">${lVal}π</span> = <span class="text-yellow-300 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-400">[ ? ]</span>π
                         </div>
                         <div class="text-xs text-slate-300 mt-1">
-                            ※ 계산된 정수 계수만 입력창에 입력하세요! (정답: ${sVal})
+                            ※ 계산된 정수 계수만 입력창에 입력하세요!
                         </div>
                     `;
                 } else {
@@ -1140,7 +1191,9 @@
             }
 
             const angleLabel = document.getElementById('defense-angle-label');
-            if (angleLabel) angleLabel.innerText = `중심각 ${xVal}°`;
+            if (angleLabel) {
+                angleLabel.innerText = currentStage >= 1 ? `중심각 ${xVal}°` : `중심각 ?° (분석 대기)`;
+            }
             const radiusLabel = document.getElementById('defense-radius-label');
             if (radiusLabel) radiusLabel.innerText = `반지름 r = ${rVal}cm`;
 
@@ -1697,6 +1750,7 @@
             if (!mission) return;
             const rVal = mission.radius || 6;
             const xVal = mission.angle || 60;
+            const currentStage = lastKnownRoomData ? (myTeam === 'blue' ? (lastKnownRoomData.blueStage || 0) : (lastKnownRoomData.redStage || 0)) : 0;
 
             const startAngle = -0.4;
             const endAngle = startAngle - (xVal * Math.PI) / 180;
@@ -1730,9 +1784,11 @@
             ctx.textBaseline = 'middle';
             ctx.fillText("☄️", mx, my);
 
+            // 1단계에서는 캔버스에서도 각도 스포일러 방지 (?° 메테오)
             ctx.font = 'bold 11px sans-serif';
             ctx.fillStyle = '#f87171';
-            ctx.fillText(`중심각 ${xVal}° 메테오`, mx, my + 18);
+            const meteorText = currentStage >= 1 ? `중심각 ${xVal}° 메테오` : `중심각 ?° 메테오`;
+            ctx.fillText(meteorText, mx, my + 18);
             ctx.restore();
         }
     </script>
