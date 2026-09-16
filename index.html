@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* Fallback rules to guarantee styling even during CDN load delays */
         body { 
             font-family: 'Jua', 'Inter', sans-serif;
             color: #f8fafc;
@@ -107,7 +106,7 @@
                     <span class="text-3xl">🔵</span>
                     <span>청군 코어 (블루 아크) 기동</span>
                 </button>
-                <button onclick="joinTeam('red')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 transition-all duration-200 shadow-xl border-2 border-rose-400 flex items-center justify-center gap-3 transform hover:-translate-y-1 active:scale-95">
+                <button onclick="joinTeam('red')" class="group relative py-5 rounded-2xl font-arc text-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-red-600 hover:to-rose-500 transition-all duration-200 shadow-xl border-2 border-rose-400 flex items-center justify-center gap-3 transform hover:-translate-y-1 active:scale-95">
                     <span class="text-3xl">🔴</span>
                     <span>홍군 코어 (레드 아크) 기동</span>
                 </button>
@@ -293,7 +292,7 @@
 
                     <!-- Step 3 Fire / Tactical Module Launch Control -->
                     <div id="tactical-launch-control" class="hidden flex flex-col items-center gap-2 w-full max-w-md">
-                        <button onclick="openTacticalModal()" class="w-full py-4 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-300 text-slate-950 font-arc text-xl md:text-2xl rounded-2xl shadow-xl border-2 border-white active:scale-95 transition animate-pulse flex items-center justify-center gap-2">
+                        <button id="fire-action-btn" onclick="openTacticalModal()" class="w-full py-4 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-300 text-slate-950 font-arc text-xl md:text-2xl rounded-2xl shadow-xl border-2 border-white active:scale-95 transition animate-pulse flex items-center justify-center gap-2">
                             <span>🚀</span><span>에이지스 전술 모듈 선택 & 카운터 포격!</span>
                         </button>
                         <span class="text-xs text-yellow-200 font-semibold">면적 압축 완료! 전술 카드를 골라 반격 레이저를 쏘세요!</span>
@@ -515,6 +514,7 @@
         const sfx = new SoundFX();
     </script>
 
+    <!-- Main Game Logic and Firebase Synchronizer -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { initializeFirestore, memoryLocalCache, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -543,11 +543,11 @@
                 badge.className = "text-emerald-400 font-bold";
             }
         } catch (e) {
-            useFallback = false;
+            useFallback = true;
             const badge = document.getElementById('db-status-badge');
             if (badge) {
-                badge.innerText = "🟢 클라우드 DB 연결 (직접 모드)";
-                badge.className = "text-emerald-400 font-bold";
+                badge.innerText = "🔴 로컬 모드 작동 (" + e.message + ")";
+                badge.className = "text-rose-400 font-bold";
             }
         }
 
@@ -568,7 +568,9 @@
         const recentCluesSet = new Set();
         let lastPingSentTime = 0;
 
-        // Procedural Math Engine for Sector (Arc Shield) Mission
+        // ★ [연타 방지 가드 플래그] 전술 쉴드 격발 중복 클릭 방지
+        let isActionProcessing = false;
+
         function generateArcMission(waveIndex = 1) {
             let mission = null;
             let attempts = 0;
@@ -665,7 +667,6 @@
             }, 100);
         }
 
-        // Clean member list: Deduplicate by ID and preserve stable join order without ghost polling
         function cleanMemberList(members = []) {
             const map = new Map();
             members.forEach(item => {
@@ -737,6 +738,7 @@
             currentUserName = name;
             currentRoomCode = code;
             myTeam = team;
+            isActionProcessing = false;
 
             const myMemberObj = { id: myPlayerId, name: currentUserName, joinedAt: myJoinedAt };
             document.getElementById('lobby-status').innerText = "사령부 레이더 통신망에 접속 중입니다...";
@@ -791,7 +793,6 @@
             window.addEventListener('beforeunload', leaveRoomCleanup);
         };
 
-        // Teacher Spectator / Broadcaster Entry Function
         window.joinSpectator = async function() {
             const codeInput = document.getElementById('room-code');
             const code = (codeInput ? codeInput.value.trim() : '') || 'aegis101';
@@ -799,6 +800,7 @@
             currentUserName = '교사 중계석';
             currentRoomCode = code;
             myTeam = 'spectator';
+            isActionProcessing = false;
 
             try {
                 if (window.BroadcastChannel) {
@@ -838,7 +840,7 @@
         };
 
         async function leaveRoomCleanup() {
-            if (!currentRoomCode || !myTeam || !db) return;
+            if (!currentRoomCode || !myTeam || myTeam === 'spectator' || !db) return;
             try {
                 const roomRef = doc(db, 'aegis_arc_rooms', currentRoomCode);
                 const snap = await getDoc(roomRef);
@@ -886,19 +888,16 @@
 
             lastKnownRoomData = data;
 
-            // Trigger Launch Animation
             if (data.lastLaunch && (!window.lastObservedLaunchId || window.lastObservedLaunchId !== data.lastLaunch.id)) {
                 window.lastObservedLaunchId = data.lastLaunch.id;
                 triggerShieldLaunch(data.lastLaunch.team, data.lastLaunch.angle, data.lastLaunch.tacticalType);
             }
 
-            // Trigger Defense Success Explosion
             if (data.lastDefense && (!window.lastObservedDefId || window.lastObservedDefId !== data.lastDefense.id)) {
                 window.lastObservedDefId = data.lastDefense.id;
                 triggerDefenseSuccessAnim(data.lastDefense.team);
             }
 
-            // Trigger Tactical Ping
             if (data.lastPing && (!window.lastObservedPingId || window.lastObservedPingId !== data.lastPing.id)) {
                 window.lastObservedPingId = data.lastPing.id;
                 if (myTeam === 'spectator' || data.lastPing.team === myTeam) {
@@ -906,7 +905,6 @@
                 }
             }
 
-            // Trigger EMP Dust Cover
             if (data.smokeTarget === myTeam && (!window.lastObservedSmokeId || window.lastObservedSmokeId !== data.smokeId)) {
                 window.lastObservedSmokeId = data.smokeId;
                 activateDustCover();
@@ -1115,6 +1113,7 @@
             const waitingNotice = document.getElementById('waiting-notice');
             const currentActorEl = document.getElementById('current-actor-name');
             const stepNumInput = document.getElementById('step-number-input');
+            const fireActionBtn = document.getElementById('fire-action-btn');
 
             if (instEl) {
                 if (currentStage === 0) instEl.innerText = "【1단계: 중심각 분석】 위협 힌트를 보고 부채꼴의 중심각 x° 숫자를 입력하세요!";
@@ -1128,6 +1127,11 @@
                 if (currentStage === 3) {
                     if (numControls) numControls.classList.add('hidden');
                     if (tacticalControls) tacticalControls.classList.remove('hidden');
+                    isActionProcessing = false;
+                    if (fireActionBtn) {
+                        fireActionBtn.disabled = false;
+                        fireActionBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
                 } else {
                     if (tacticalControls) tacticalControls.classList.add('hidden');
                     if (numControls) numControls.classList.remove('hidden');
@@ -1220,12 +1224,26 @@
         };
 
         window.openTacticalModal = function() {
+            if (isActionProcessing) return;
             document.getElementById('tactical-select-modal').classList.remove('hidden');
         };
 
         window.chooseTacticalModule = async function(tacticalType) {
+            if (isActionProcessing) return;
+            isActionProcessing = true;
+
+            const fireActionBtn = document.getElementById('fire-action-btn');
+            if (fireActionBtn) {
+                fireActionBtn.disabled = true;
+                fireActionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
             document.getElementById('tactical-select-modal').classList.add('hidden');
-            if (!lastKnownRoomData) return;
+            if (!lastKnownRoomData) {
+                isActionProcessing = false;
+                return;
+            }
+
             const data = lastKnownRoomData;
             const mission = myTeam === 'blue' ? data.blueMission : data.redMission;
 
@@ -1278,6 +1296,7 @@
                 sfx.success();
                 showStepFeedback("✨ [메테오 완벽 방어 성공!] 다음 웨이브로 즉시 진입합니다! (역할 자동 순환)", false);
                 defData.updatedAt = Date.now();
+                isActionProcessing = false;
                 await syncStateUpdate(defData);
             }, tacticalType === 'reflect' ? 850 : 1300);
 
@@ -1360,7 +1379,7 @@
                 if (e.touches && e.touches[0]) {
                     const touch = e.touches[0];
                     const rect = canvas.getBoundingClientRect();
-                    triggerPingFromCanvas(touch.clientX - rect.left, touch.clientY - rect.top);
+                    triggerPingFromCoords(touch.clientX - rect.left, touch.clientY - rect.top);
                 }
             });
 
@@ -1375,10 +1394,10 @@
 
         function handleCanvasPing(e) {
             const rect = canvas.getBoundingClientRect();
-            triggerPingFromCanvas(e.clientX - rect.left, e.clientY - rect.top);
+            triggerPingFromCoords(e.clientX - rect.left, e.clientY - rect.top);
         }
 
-        function triggerPingFromCanvas(canvasX, canvasY) {
+        function triggerPingFromCoords(canvasX, canvasY) {
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
             const dx = canvasX - cx;
@@ -1563,7 +1582,7 @@
                 ctx.strokeStyle = b.tacticalType === 'emp' ? '#c084fc' : (b.tacticalType === 'harvest' ? '#facc15' : '#38bdf8');
                 ctx.lineWidth = 5;
                 ctx.shadowBlur = 15;
-                ctx.shadowColor = ctx.strokeStyle;
+                ctx.shadowColor = b.tacticalType === 'emp' ? '#c084fc' : (b.tacticalType === 'harvest' ? '#facc15' : '#38bdf8');
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
                 ctx.lineTo(endX, endY);
